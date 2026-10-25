@@ -7,6 +7,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test \"tests/unit/**/*.test.js\""
+    "test": "node --test \"tests/unit/**/*.test.js\"",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
   }
 }
