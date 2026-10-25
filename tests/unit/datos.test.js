@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sinAcentos, esc, money, categorias, mostrarBarraCategorias, buscar } from '../../core/datos.js';
+import { sinAcentos, esc, money, categorias, mostrarBarraCategorias, buscar, lote, LOTE } from '../../core/datos.js';
 
 const P = [
   { id: 'a', n: 'Lámpara vintage G125', cat: 'Lámparas', d: 'Filamento ámbar E27' },
@@ -32,6 +32,14 @@ test('AC-001-1 la búsqueda respeta la categoría elegida', () => {
   assert.deepEqual(buscar(P, '', 'Sensores').map(p => p.id), ['c']);
 });
 
+test('AC-001-1 si cambia el nombre de un producto, la búsqueda usa el nombre nuevo', () => {
+  const p = { id: 'x', n: 'Reflector 50 W', cat: 'Reflectores' };
+  assert.equal(buscar([p], 'reflector').length, 1);
+  p.n = 'Plafón LED';
+  assert.equal(buscar([p], 'reflector').length, 0);
+  assert.equal(buscar([p], 'plafon').length, 1);
+});
+
 test('AC-001-2 las categorías salen en el orden de la planilla, sin repetir', () => {
   assert.deepEqual(categorias(P), ['Lámparas', 'Guirnaldas', 'Sensores']);
 });
@@ -54,4 +62,13 @@ test('seguridad: esc escapa los caracteres que rompen el HTML', () => {
 test('formato: money redondea y usa puntos de miles', () => {
   assert.equal(money(14900), '$14.900');
   assert.equal(money(1234.6), '$1.235');
+});
+
+test('AC-001-3 lote devuelve de a 60 productos y la última tanda incompleta', () => {
+  const muchos = Array.from({ length: 130 }, (_, i) => ({ id: 'p' + i }));
+  assert.equal(LOTE, 60);
+  assert.deepEqual(lote(muchos, 0).map(p => p.id).slice(0, 2), ['p0', 'p1']);
+  assert.equal(lote(muchos, 0).length, 60);
+  assert.equal(lote(muchos, 120).length, 10);
+  assert.equal(lote(muchos, 130).length, 0);
 });
