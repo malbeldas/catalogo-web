@@ -1,8 +1,9 @@
 /* Catálogo web de marca blanca: productos, precios visibles u ocultos y pedidos por WhatsApp.
    Cada negocio es un JSON en tiendas/ (o "propia": la arma el vendedor en el momento, se guarda en este celular).
+   Si el JSON trae planilla.web, los productos salen de la pestaña Web publicada como CSV (UC-010).
    tienda.html?t=<id>&demo=1 muestra la barra de demostración.
    La lógica pura (búsqueda, categorías, formatos) vive en datos.js. */
-import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp } from './datos.js';
+import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV } from './datos.js';
 
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
@@ -23,10 +24,18 @@ async function load(id){
     T=Object.assign({},PROPIA_BASE,saved||{});
   }else{
     const r=await fetch('tiendas/'+id+'.json');T=await r.json();
+    if(T.planilla&&T.planilla.web)T.productos=await productosDePlanilla(T.planilla.web,T.productos);
   }
+  T.productos=T.productos||[];
   T.colorOrig=T.colorOrig||T.color;
   showPrices=!!T.precios;cart={};cat='Todo';
   theme(T.color);render();
+}
+// Sin caché del navegador: un cambio en la planilla se ve al recargar (AC-010-1). Si la planilla no responde,
+// quedan los productos del JSON; el respaldo programado llega con STORY-003 (AC-010-4).
+async function productosDePlanilla(url,siFalla){
+  try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(r.status);return productosDesdeCSV(await r.text())}
+  catch(e){return siFalla}
 }
 function lum(h){const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
 function theme(c){const r=document.documentElement.style;r.setProperty('--brand',c);r.setProperty('--on-brand',lum(c)>.45?'#111':'#fff');
@@ -72,10 +81,14 @@ function priceHTML(p){
   if(p.p==null||p.p==='')return '<span class="ask">Consultar</span>';
   return `<span class="pr">${money(p.p)}</span>`+(p.antes?`<s>${money(p.antes)}</s>`:'');
 }
+// Sin foto, o con la foto rota o privada, queda a la vista un recuadro con la inicial (SPEC.md §5).
+const inicial=p=>(Array.from(String(p.n||'').trim())[0]||'').toUpperCase();
+document.addEventListener('error',e=>{const im=e.target;if(im.tagName!=='IMG')return;
+  if(im.closest('.ph'))im.remove();else if(im.closest('#lines'))im.outerHTML='<span class="ph0"></span>'},true);
 function card(p){
   const q=cart[p.id]||0;
   return `<article class="pc" data-id="${esc(p.id)}">
-    <div class="ph">${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy">`:''}${p.antes&&showPrices?`<em>-${Math.round(100-100*p.p/p.antes)}%</em>`:''}</div>
+    <div class="ph"><span class="ini" aria-hidden="true">${esc(inicial(p))}</span>${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy">`:''}${p.antes&&showPrices?`<em>-${Math.round(100-100*p.p/p.antes)}%</em>`:''}</div>
     <div class="pb"><h3>${esc(p.n)}</h3>${p.d?`<p>${esc(p.d)}</p>`:''}<div class="prow">${priceHTML(p)}</div>
     ${q?`<div class="step"><button type="button" data-a="-" aria-label="Quitar uno">−</button><b>${q}</b><button type="button" data-a="+" aria-label="Sumar uno">+</button></div>`
       :`<button class="add" type="button" data-a="+">${showPrices?'Agregar':'Consultar'}</button>`}</div></article>`;
