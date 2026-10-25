@@ -7,8 +7,8 @@ const raiz = new URL('../../', import.meta.url).pathname;
 const tipos = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
 
 createServer(async (req, res) => {
-  const ruta = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
   try {
+    const ruta = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
     const cuerpo = await readFile(join(raiz, ruta.endsWith('/') ? ruta + 'index.html' : ruta));
     res.writeHead(200, { 'content-type': tipos[extname(ruta)] || 'application/octet-stream' }).end(cuerpo);
   } catch {

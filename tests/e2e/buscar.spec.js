@@ -1,5 +1,5 @@
 // UC-001 — Navegar y buscar (SPEC.md §2).
-import { test, expect, abrirCatalogo, generarProductos } from './ayudas.js';
+import { test, expect, abrirCatalogo, generarProductos, emularCelular4G } from './ayudas.js';
 
 const ancho = page => page.evaluate(() => document.documentElement.scrollWidth);
 
@@ -56,11 +56,7 @@ test.describe('AC-001-2 categorías', () => {
 
 test.describe('AC-001-3 catálogo grande', () => {
   test('AC-001-3 con 3.000 productos la primera pantalla aparece en menos de 2 s', async ({ page }) => {
-    // Celular de gama media con 4G: CPU 4 veces más lenta y red de ~9 Mbps con 170 ms de latencia.
-    const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-    await cdp.send('Network.enable');
-    await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 170, downloadThroughput: 9e6 / 8, uploadThroughput: 1.5e6 / 8 });
+    await emularCelular4G(page);
     await abrirCatalogo(page, { productos: generarProductos(3000, ['Guirnaldas', 'Lámparas', 'Sensores']) });
     await expect(page.locator('#grid .pc').first()).toBeVisible();
     const ms = await page.evaluate(() => performance.now());
