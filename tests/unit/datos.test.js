@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sinAcentos, esc, money, categorias, mostrarBarraCategorias, buscar } from '../../core/datos.js';
+import { sinAcentos, esc, money, categorias, mostrarBarraCategorias, buscar, lote, LOTE } from '../../core/datos.js';
 
 const P = [
   { id: 'a', n: 'Lámpara vintage G125', cat: 'Lámparas', d: 'Filamento ámbar E27' },
@@ -54,4 +54,13 @@ test('seguridad: esc escapa los caracteres que rompen el HTML', () => {
 test('formato: money redondea y usa puntos de miles', () => {
   assert.equal(money(14900), '$14.900');
   assert.equal(money(1234.6), '$1.235');
+});
+
+test('AC-001-3 lote devuelve de a 60 productos y la última tanda incompleta', () => {
+  const muchos = Array.from({ length: 130 }, (_, i) => ({ id: 'p' + i }));
+  assert.equal(LOTE, 60);
+  assert.deepEqual(lote(muchos, 0).map(p => p.id).slice(0, 2), ['p0', 'p1']);
+  assert.equal(lote(muchos, 0).length, 60);
+  assert.equal(lote(muchos, 120).length, 10);
+  assert.equal(lote(muchos, 130).length, 0);
 });

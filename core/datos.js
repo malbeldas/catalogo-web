@@ -24,3 +24,7 @@ export function buscar(productos, texto, cat = null) {
   const q = sinAcentos(texto).trim();
   return productos.filter(p => (!cat || p.cat === cat) && (!q || sinAcentos(p.n + ' ' + (p.d || '')).includes(q)));
 }
+
+// Productos por tanda: la grilla muestra de a LOTE y suma más al bajar (AC-001-3).
+export const LOTE = 60;
+export const lote = (lista, mostrados, tam = LOTE) => lista.slice(mostrados, mostrados + tam);
