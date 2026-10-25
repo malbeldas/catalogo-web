@@ -1,6 +1,9 @@
 /* Catálogo web de marca blanca: productos, precios visibles u ocultos y pedidos por WhatsApp.
    Cada negocio es un JSON en tiendas/ (o "propia": la arma el vendedor en el momento, se guarda en este celular).
-   tienda.html?t=<id>&demo=1 muestra la barra de demostración. */
+   tienda.html?t=<id>&demo=1 muestra la barra de demostración.
+   La lógica pura (búsqueda, categorías, formatos) vive en datos.js. */
+import { esc, money, categorias, mostrarBarraCategorias, buscar } from './datos.js';
+
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
 const DEMO=Q.get('demo')!=='0';
@@ -8,14 +11,12 @@ const EJEMPLOS=[['pueyrredon','Mayorista'],['pled','Minorista'],['propia','Tu cl
 const SW=['#06518b','#111c2e','#0f766e','#b91c1c','#7c3aed','#c2410c','#1f2937','#be185d'];
 let T=null,cart={},cat='Todo',showPrices=false;
 
-const money=n=>'$'+Math.round(n).toLocaleString('es-AR');
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
 let tt;function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2200)}
 
 /* ---------- Carga del negocio ---------- */
 const PROPIA_BASE={id:'propia',nombre:'',bajada:'',tipo:'Minorista',logo:'',color:'#0f766e',precios:true,
-  categorias:[],productos:[]};
+  productos:[]};
 async function load(id){
   if(id==='propia'){
     const saved=ls.get('mostrador_propia',null);
@@ -44,15 +45,14 @@ function render(){
   $('stName').textContent=T.nombre||'Tu negocio';$('stSub').textContent=T.bajada||'Agregá productos desde Funciones';
   $('stTags').innerHTML=`<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Pedidos por WhatsApp</span>`+
     (T.tipo?`<span>${esc(T.tipo)}</span>`:'')+(showPrices?'':'<span>Precios a consultar</span>');
-  const cats=['Todo',...(T.categorias||[])].filter(c=>c==='Todo'||T.productos.some(p=>p.cat===c));
-  $('cats').innerHTML=cats.length>2?cats.map(c=>`<button type="button" class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join(''):'';
+  const cs=categorias(T.productos),cats=['Todo',...cs];
+  $('cats').innerHTML=mostrarBarraCategorias(cs)?cats.map(c=>`<button type="button" class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join(''):'';
   grid();cartUI();demoUI();
 }
 $('cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.c;render();window.scrollTo({top:$('tools').offsetTop-40,behavior:'smooth'})};
 $('q').oninput=()=>grid();
 function grid(){
-  const q=$('q').value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-  const list=T.productos.filter(p=>(cat==='Todo'||p.cat===cat)&&(!q||(p.n+' '+(p.d||'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(q)));
+  const list=buscar(T.productos,$('q').value,cat==='Todo'?null:cat);
   $('grid').innerHTML=list.map(card).join('');
   const em=$('empty');em.hidden=!!list.length;
   em.innerHTML=T.productos.length?'No encontramos productos con esa búsqueda.':(T.id==='propia'?'<b>Todavía no hay productos.</b><br>Sacales una foto a 3 o 4 productos del cliente y armá su catálogo en un minuto.<br><button class="b b-brand" type="button" onclick="openEdit()">Armar catálogo</button>':'');
