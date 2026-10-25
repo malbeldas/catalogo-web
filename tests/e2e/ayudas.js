@@ -20,8 +20,25 @@ export { expect };
 // esta función pasa a interceptar las URLs CSV y los tests no cambian.
 export async function simularCatalogo(page, tienda) {
   const datos = { id: 'pled', nombre: 'Comercio de prueba', bajada: 'Catálogo simulado', tipo: 'Minorista', color: '#0f766e', wa: '5491100000000', precios: true, productos: [], ...tienda };
-  await page.route('**/tiendas/*.json', r => r.fulfill({ json: datos }));
+  const cuerpo = JSON.stringify(datos);
+  await page.route('**/tiendas/*.json', async r => {
+    // Una respuesta simulada no pasa por la red emulada de Chromium: la demora se aplica acá.
+    const red = redes.get(page);
+    if (red) await new Promise(ok => setTimeout(ok, red.latencia + Buffer.byteLength(cuerpo) / red.bajada * 1000));
+    return r.fulfill({ body: cuerpo, contentType: 'application/json' });
+  });
   return datos;
+}
+
+// Celular de gama media con 4G (AC-001-3): CPU 4 veces más lenta y ~9 Mbps de bajada con 170 ms de latencia.
+const redes = new WeakMap();
+export async function emularCelular4G(page) {
+  const red = { latencia: 170, bajada: 9e6 / 8, subida: 1.5e6 / 8 };
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await cdp.send('Network.enable');
+  await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: red.latencia, downloadThroughput: red.bajada, uploadThroughput: red.subida });
+  redes.set(page, red);
 }
 
 // Abre el catálogo simulado tal como lo ve un comprador (sin barra de demo).
