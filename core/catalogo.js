@@ -39,11 +39,12 @@ function logoHTML(cls){
   const ini=(T.nombre||'Tu negocio').split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
   return `<span class="mono">${esc(ini)}</span>`;
 }
+const sinWhatsApp=()=>!DEMO&&!linkWhatsApp(T.wa,'');
 function render(){
   document.title=(T.nombre||'Tu negocio')+' · Catálogo';
   $('stLogo').innerHTML=logoHTML();$('stLogo').classList.toggle('wide',wideLogo());$('stName').classList.toggle('vh',wideLogo());
   $('stName').textContent=T.nombre||'Tu negocio';$('stSub').textContent=T.bajada||'Agregá productos desde Funciones';
-  $('stTags').innerHTML=`<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Pedidos por WhatsApp</span>`+
+  $('stTags').innerHTML=(sinWhatsApp()?'':`<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Pedidos por WhatsApp</span>`)+
     (T.tipo?`<span>${esc(T.tipo)}</span>`:'')+(showPrices?'':'<span>Precios a consultar</span>');
   const cs=categorias(T.productos),cats=['Todo',...cs];
   $('cats').innerHTML=mostrarBarraCategorias(cs)?cats.map(c=>`<button type="button" class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join(''):'';
@@ -100,6 +101,8 @@ function lines(){
     <span class="step sm"><button type="button" data-a="-">−</button><b>${q}</b><button type="button" data-a="+">+</button></span></li>`).join('');
   const t=total();$('tot').innerHTML=showPrices&&t?`<span>Total estimado</span><b>${money(t)}</b>`:'';$('tot').hidden=!(showPrices&&t);
   $('sendLbl').textContent=showPrices?'Enviar pedido por WhatsApp':'Consultar precios por WhatsApp';
+  // Sin número no hay a dónde mandar: el carrito sigue andando y se avisa (SPEC.md §5). En la demo se muestra el chat de ejemplo.
+  const sinWa=sinWhatsApp();$('sendOrder').hidden=$('cNameFld').hidden=sinWa;$('sinWa').hidden=!sinWa;
   if(!it.length)close();
 }
 $('lines').onclick=e=>{const b=e.target.closest('button[data-a]');if(b)change(b.closest('li').dataset.id,b.dataset.a==='+'?1:-1)};
@@ -108,8 +111,8 @@ function orderMsg(){return mensajePedido(cartItems(),{comercio:T.nombre,precios:
 $('sendOrder').onclick=()=>sendWA(orderMsg());
 function sendWA(msg){
   const url=linkWhatsApp(T.wa,msg);
-  if(DEMO||!url){chat(msg);return}
-  location.href=url;
+  if(DEMO){chat(msg);return}
+  if(url)location.href=url;
 }
 function chat(msg){
   $('chAv').innerHTML=logoHTML('av');$('chName').textContent=T.nombre||'Tu negocio';
