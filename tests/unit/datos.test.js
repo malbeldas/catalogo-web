@@ -32,6 +32,14 @@ test('AC-001-1 la búsqueda respeta la categoría elegida', () => {
   assert.deepEqual(buscar(P, '', 'Sensores').map(p => p.id), ['c']);
 });
 
+test('AC-001-1 si cambia el nombre de un producto, la búsqueda usa el nombre nuevo', () => {
+  const p = { id: 'x', n: 'Reflector 50 W', cat: 'Reflectores' };
+  assert.equal(buscar([p], 'reflector').length, 1);
+  p.n = 'Plafón LED';
+  assert.equal(buscar([p], 'reflector').length, 0);
+  assert.equal(buscar([p], 'plafon').length, 1);
+});
+
 test('AC-001-2 las categorías salen en el orden de la planilla, sin repetir', () => {
   assert.deepEqual(categorias(P), ['Lámparas', 'Guirnaldas', 'Sensores']);
 });

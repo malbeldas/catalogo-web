@@ -19,10 +19,20 @@ export function categorias(productos) {
 // La barra de categorías solo tiene sentido con dos o más (AC-001-2).
 export const mostrarBarraCategorias = cats => cats.length > 1;
 
+// Texto de búsqueda de cada producto, calculado una sola vez: con miles de productos
+// normalizar en cada tecla se nota en un celular.
+const textos = new WeakMap();
+function textoDe(p) {
+  const clave = p.n + '\n' + (p.d || '');
+  let t = textos.get(p);
+  if (!t || t.clave !== clave) textos.set(p, t = { clave, q: sinAcentos(p.n + ' ' + (p.d || '')) });
+  return t.q;
+}
+
 // Filtra por categoría (null = todas) y por texto en nombre y descripción (AC-001-1).
 export function buscar(productos, texto, cat = null) {
   const q = sinAcentos(texto).trim();
-  return productos.filter(p => (!cat || p.cat === cat) && (!q || sinAcentos(p.n + ' ' + (p.d || '')).includes(q)));
+  return productos.filter(p => (!cat || p.cat === cat) && (!q || textoDe(p).includes(q)));
 }
 
 // Productos por tanda: la grilla muestra de a LOTE y suma más al bajar (AC-001-3).

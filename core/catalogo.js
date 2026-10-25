@@ -57,14 +57,15 @@ function grid(){
   const em=$('empty');em.hidden=!!lista.length;
   em.innerHTML=T.productos.length?'No encontramos productos con esa búsqueda.':(T.id==='propia'?'<b>Todavía no hay productos.</b><br>Sacales una foto a 3 o 4 productos del cliente y armá su catálogo en un minuto.<br><button class="b b-brand" type="button" onclick="openEdit()">Armar catálogo</button>':'');
 }
-/* Catálogos grandes: se dibuja de a una tanda y se suma otra cuando el final de la grilla se acerca a la pantalla. */
+/* Catálogos grandes: se dibuja de a una tanda y se suma otra cuando el final de la grilla se acerca a la pantalla.
+   Volver a observar el marcador hace que el navegador avise de nuevo si sigue cerca, sin medir la página a mano. */
+const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))masProductos()},{rootMargin:'0px 0px 600px 0px'});
 function masProductos(){
   const sig=lote(lista,mostrados);
   if(sig.length){$('grid').insertAdjacentHTML('beforeend',sig.map(card).join(''));mostrados+=sig.length}
   $('mas').hidden=mostrados>=lista.length;
-  if(!$('mas').hidden&&$('mas').getBoundingClientRect().top<innerHeight+600)requestAnimationFrame(masProductos);
+  io.unobserve($('mas'));if(!$('mas').hidden)io.observe($('mas'));
 }
-new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))masProductos()},{rootMargin:'0px 0px 600px 0px'}).observe($('mas'));
 function priceHTML(p){
   if(!showPrices)return '<span class="ask">Consultá el precio</span>';
   if(p.p==null||p.p==='')return '<span class="ask">Consultar</span>';
