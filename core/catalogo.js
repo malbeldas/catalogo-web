@@ -2,7 +2,7 @@
    Cada negocio es un JSON en tiendas/ (o "propia": la arma el vendedor en el momento, se guarda en este celular).
    tienda.html?t=<id>&demo=1 muestra la barra de demostración.
    La lógica pura (búsqueda, categorías, formatos) vive en datos.js. */
-import { esc, money, categorias, mostrarBarraCategorias, buscar, lote } from './datos.js';
+import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp } from './datos.js';
 
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
@@ -87,7 +87,7 @@ function change(id,d){cart[id]=Math.max(0,(cart[id]||0)+d);if(!cart[id])delete c
 
 /* ---------- Pedido ---------- */
 function cartItems(){return Object.entries(cart).map(([id,q])=>({p:T.productos.find(x=>x.id===id),q})).filter(x=>x.p)}
-function total(){return cartItems().reduce((s,{p,q})=>s+(showPrices&&p.p?p.p*q:0),0)}
+function total(){return totalPedido(cartItems(),showPrices)}
 function cartUI(){
   const it=cartItems(),n=it.reduce((s,x)=>s+x.q,0);$('cartbar').hidden=!n;
   $('cbN').textContent=n;$('cbLbl').textContent=showPrices?'Ver mi pedido':'Ver mi consulta';
@@ -104,16 +104,12 @@ function lines(){
 }
 $('lines').onclick=e=>{const b=e.target.closest('button[data-a]');if(b)change(b.closest('li').dataset.id,b.dataset.a==='+'?1:-1)};
 $('cartbar').onclick=()=>{lines();open('shCart')};
-function orderMsg(){
-  const it=cartItems(),who=$('cName').value.trim();
-  return [`Hola ${T.nombre||''}! ${showPrices?'Quiero hacer este pedido':'Quiero consultar precio de'}:`,
-    ...it.map(({p,q})=>`• ${q} × ${p.n}${showPrices&&p.p?` (${money(p.p*q)})`:''}`),
-    showPrices&&total()?`Total estimado: ${money(total())}`:'',who?`Soy ${who}.`:''].filter(Boolean).join('\n');
-}
+function orderMsg(){return mensajePedido(cartItems(),{comercio:T.nombre,precios:showPrices,comprador:$('cName').value})}
 $('sendOrder').onclick=()=>sendWA(orderMsg());
 function sendWA(msg){
-  if(DEMO||!T.wa){chat(msg);return}
-  location.href='https://wa.me/'+T.wa+'?text='+encodeURIComponent(msg);
+  const url=linkWhatsApp(T.wa,msg);
+  if(DEMO||!url){chat(msg);return}
+  location.href=url;
 }
 function chat(msg){
   $('chAv').innerHTML=logoHTML('av');$('chName').textContent=T.nombre||'Tu negocio';
