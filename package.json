@@ -1,0 +1,12 @@
+{
+  "name": "catalogo-web",
+  "private": true,
+  "description": "Catálogo web de marca blanca: productos, precios visibles u ocultos y pedidos por WhatsApp.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"tests/unit/**/*.test.js\""
+  }
+}
