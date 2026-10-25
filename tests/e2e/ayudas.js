@@ -1,6 +1,6 @@
 // Ayudas comunes de los E2E.
 // - Toda llamada fuera de localhost se corta (nunca Google ni WhatsApp reales) y queda anotada.
-// - simularCatalogo() reemplaza los datos del comercio por los del test.
+// - simularCatalogo() reemplaza los datos del comercio por los del test; abrirPlanilla() los sirve como la planilla publicada.
 // - generarProductos() arma catálogos de cualquier tamaño.
 import { test as base, expect } from '@playwright/test';
 
@@ -16,8 +16,7 @@ export const test = base.extend({
 });
 export { expect };
 
-// Hoy el catálogo se lee de tiendas/<id>.json; cuando llegue la planilla (STORY-004, #7)
-// esta función pasa a interceptar las URLs CSV y los tests no cambian.
+// Catálogo armado en tiendas/<id>.json, como los ejemplos de la demo.
 export async function simularCatalogo(page, tienda) {
   const datos = { id: 'pled', nombre: 'Comercio de prueba', bajada: 'Catálogo simulado', tipo: 'Minorista', color: '#0f766e', wa: '5491100000000', precios: true, productos: [], ...tienda };
   const cuerpo = JSON.stringify(datos);
@@ -39,6 +38,22 @@ export async function emularCelular4G(page) {
   await cdp.send('Network.enable');
   await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: red.latencia, downloadThroughput: red.bajada, uploadThroughput: red.subida });
   redes.set(page, red);
+}
+
+// Planilla publicada del comercio (UC-010): tienda.json apunta a planilla.web y esa URL devuelve el CSV.
+// Cambiar planilla.csv entre recargas simula que el comercio editó su planilla.
+export const URL_PLANILLA = 'https://docs.google.com/spreadsheets/d/e/PRUEBA/pub?gid=0&single=true&output=csv';
+export const TITULOS_PLANILLA = ['Código', 'Nombre', 'Categoría', 'Descripción', 'Precio', 'Precio anterior', 'Foto', 'Visible'];
+const celdaCSV = v => /[",\n]/.test(String(v ?? '')) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? '');
+export const aCSV = filas => [TITULOS_PLANILLA, ...filas].map(f => f.map(celdaCSV).join(',')).join('\r\n');
+export async function abrirPlanilla(page, filas, tienda) {
+  const planilla = { csv: aCSV(filas), lecturas: 0 };
+  const datos = await simularCatalogo(page, { productos: undefined, planilla: { web: URL_PLANILLA }, ...tienda });
+  // Registrada después del corte de llamadas externas, así que esta URL se atiende acá.
+  await page.route(URL_PLANILLA, r => { planilla.lecturas++; return r.fulfill({ body: planilla.csv, contentType: 'text/csv' }); });
+  await page.goto('/tienda.html?t=pled&demo=0');
+  await expect(page.locator('#stName')).toHaveText(datos.nombre);
+  return planilla;
 }
 
 // Abre el catálogo simulado tal como lo ve un comprador (sin barra de demo).
