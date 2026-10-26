@@ -1,0 +1,15 @@
+{
+ "id": "mi-comercio",
+ "nombre": "Nombre del comercio",
+ "bajada": "Rubro o frase corta",
+ "tipo": "Minorista",
+ "logo": "img/logo.png",
+ "logoCuadrado": true,
+ "color": "#1f2937",
+ "wa": "",
+ "precios": true,
+ "planilla": {
+  "web": "",
+  "ajustes": ""
+ }
+}
