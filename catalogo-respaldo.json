@@ -1,0 +1,37 @@
+{
+ "actualizado": "2026-10-26T00:11:57.571Z",
+ "productos": [
+  {
+   "id": "g5",
+   "n": "Guirnalda 5 m",
+   "cat": "Guirnaldas",
+   "d": "6 lámparas, cable negro",
+   "p": 14900,
+   "antes": 17900,
+   "img": ""
+  },
+  {
+   "id": "l1",
+   "n": "Lámpara G125 filamento",
+   "cat": "Lámparas",
+   "d": "",
+   "p": 8900,
+   "antes": null,
+   "img": ""
+  },
+  {
+   "id": "t1",
+   "n": "Tira LED 5 m",
+   "cat": "Tiras LED",
+   "d": "",
+   "p": null,
+   "antes": null,
+   "img": ""
+  }
+ ],
+ "ajustes": {
+  "wa": "5491100000000",
+  "precios": true,
+  "nombre": "Comercio de prueba"
+ }
+}
