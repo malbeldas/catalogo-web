@@ -1,37 +1,26 @@
 /* Catálogo web de marca blanca: productos, precios visibles u ocultos y pedidos por WhatsApp.
-   Cada negocio es un JSON en tiendas/ (o "propia": la arma el vendedor en el momento, se guarda en este celular).
+   Cada negocio es un JSON en tiendas/.
    Si el JSON trae planilla.web, los productos salen de la pestaña Web publicada como CSV (UC-010),
    y con planilla.ajustes el WhatsApp, el nombre, la bajada y los precios salen de la pestaña Ajustes (UC-011).
    Si una pestaña no responde o no es válida, se usa esa parte de catalogo-respaldo.json (AC-010-4).
-   tienda.html?t=<id>&demo=1 muestra la barra de demostración.
+   Con demo=1 se carga además la demo (demo.js): ejemplos, Funciones y "Tu cliente".
    La lógica pura (búsqueda, categorías, formatos) vive en datos.js. */
 import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV, ajustesDesdeCSV, aplicarAjustes, esPestana } from './datos.js';
 
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
 const DEMO=Q.get('demo')==='1'; // la demo se pide a propósito (AC-020-1); un comprador nunca la ve
-const EJEMPLOS=[['pueyrredon','Mayorista'],['pled','Minorista'],['propia','Tu cliente']];
-const SW=['#06518b','#111c2e','#0f766e','#b91c1c','#7c3aed','#c2410c','#1f2937','#be185d'];
+const TIENDAS=['pueyrredon','pled'];
 let T=null,cart={},cat='Todo',showPrices=false,lista=[],mostrados=0;
 
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
 let tt;function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2200)}
 
 /* ---------- Carga del negocio ---------- */
-const PROPIA_BASE={id:'propia',nombre:'',bajada:'',tipo:'Minorista',logo:'',color:'#0f766e',precios:true,
-  productos:[]};
-// "Tu cliente" queda guardado solo en este celular (AC-020-2). Lo armado con la clave anterior se pasa una vez a la nueva.
-const PROPIA='catalogo_propia',PROPIA_ANTERIOR='mostrador_propia';
-function leerPropia(){
-  const s=ls.get(PROPIA,null);if(s)return s;
-  const v=ls.get(PROPIA_ANTERIOR,null);
-  if(v&&ls.set(PROPIA,v))try{localStorage.removeItem(PROPIA_ANTERIOR)}catch(e){}
-  return v;
-}
+let demo=null;
 async function load(id){
-  if(id==='propia'){
-    const saved=leerPropia();
-    T=Object.assign({},PROPIA_BASE,saved||{});
+  if(id==='propia'&&demo){
+    T=demo.tiendaPropia();
   }else{
     const r=await fetch('tiendas/'+id+'.json');T=await r.json();
     // Las dos pestañas se piden a la vez para no demorar la primera pantalla.
@@ -83,7 +72,7 @@ function render(){
     (T.tipo?`<span>${esc(T.tipo)}</span>`:'')+(showPrices?'':'<span>Precios a consultar</span>');
   const cs=categorias(T.productos),cats=['Todo',...cs];
   $('cats').innerHTML=mostrarBarraCategorias(cs)?cats.map(c=>`<button type="button" class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join(''):'';
-  grid();cartUI();demoUI();
+  grid();cartUI();demo?.alRenderizar();
 }
 $('cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.c;render();window.scrollTo({top:$('tools').offsetTop-40,behavior:'smooth'})};
 $('q').oninput=()=>grid();
@@ -100,7 +89,7 @@ function grid(){
   lista=buscar(T.productos,$('q').value,cat==='Todo'?null:cat);mostrados=0;
   $('grid').innerHTML='';masProductos();
   const em=$('empty');em.hidden=!!lista.length;
-  em.innerHTML=T.productos.length?'No encontramos productos con esa búsqueda.':(T.id==='propia'?'<b>Todavía no hay productos.</b><br>Sacales una foto a 3 o 4 productos del cliente y armá su catálogo en un minuto.<br><button class="b b-brand" type="button" onclick="openEdit()">Armar catálogo</button>':'');
+  em.innerHTML=T.productos.length?'No encontramos productos con esa búsqueda.':(demo?.vacio()||'');
 }
 /* Catálogos grandes: se dibuja de a una tanda y se suma otra cuando el final de la grilla se acerca a la pantalla.
    Volver a observar el marcador hace que el navegador avise de nuevo si sigue cerca, sin medir la página a mano. */
@@ -159,62 +148,21 @@ function orderMsg(){return mensajePedido(cartItems(),{comercio:T.nombre,precios:
 $('sendOrder').onclick=()=>sendWA(orderMsg());
 function sendWA(msg){
   const url=linkWhatsApp(T.wa,msg);
-  if(DEMO){chat(msg);return}
+  if(demo){demo.chat(msg);return}
   if(url)location.href=url;
-}
-function chat(msg){
-  $('chAv').innerHTML=logoHTML('av');$('chName').textContent=T.nombre||'Tu negocio';
-  const h=new Date();$('bub').innerHTML=esc(msg).replace(/\n/g,'<br>')+`<small>${String(h.getHours()).padStart(2,'0')}:${String(h.getMinutes()).padStart(2,'0')}</small>`;
-  open('shChat');
 }
 
 /* ---------- Hojas ---------- */
 function open(id){document.querySelectorAll('.sheet').forEach(s=>s.hidden=s.id!==id);$('scrim').hidden=false;document.body.classList.add('lock')}
 function close(){document.querySelectorAll('.sheet').forEach(s=>s.hidden=true);$('scrim').hidden=true;document.body.classList.remove('lock')}
-$('scrim').onclick=close;document.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);
+$('scrim').onclick=close;document.addEventListener('click',e=>{if(e.target.closest('[data-close]'))close()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 
-/* ---------- Demo ---------- */
-function demoUI(){
-  if(!DEMO)return;
-  $('demobar').hidden=false;document.body.classList.add('has-demo');
-  $('demoEx').innerHTML=EJEMPLOS.map(([id,l])=>`<button type="button" role="tab" aria-selected="${T.id===id}" data-t="${id}">${l}</button>`).join('');
-  const has=T.productos.some(p=>p.p!=null&&p.p!=='');
-  $('fxPrice').setAttribute('aria-checked',showPrices);$('fxPrice').disabled=!has&&T.id!=='propia';
-  $('fxPriceHint').textContent=has||T.id==='propia'?'Cada negocio elige si los muestra':'Este ejemplo es mayorista: muestra el catálogo y el cliente consulta';
-  $('sws').innerHTML=[T.colorOrig,...SW.filter(c=>c!==T.colorOrig)].slice(0,8).map(c=>`<button type="button" style="--c:${c}" aria-label="Color ${c}" aria-pressed="${c===T.color}" data-c="${c}"></button>`).join('');
-  $('fxEdit').hidden=T.id!=='propia';
-}
-$('demoEx').onclick=e=>{const b=e.target.closest('button');if(!b)return;const u=new URL(location.href);u.searchParams.set('t',b.dataset.t);
-  history.replaceState(null,'',u);load(b.dataset.t).then(()=>{if(b.dataset.t==='propia'&&!T.productos.length)openEdit()})};
-$('demoFx').onclick=()=>open('shFx');
-$('fxPrice').onclick=()=>{showPrices=!showPrices;render();$('fxPrice').setAttribute('aria-checked',showPrices);toast(showPrices?'Precios visibles':'Precios ocultos: el cliente consulta por WhatsApp')};
-$('sws').onclick=e=>{const b=e.target.closest('button');if(!b)return;T.color=b.dataset.c;theme(T.color);demoUI();if(T.id==='propia')saveP()};
-$('fxOrder').onclick=()=>{close();if(location.hash){location.hash=''}
-  if(!Object.keys(cart).length)T.productos.slice(0,3).forEach((p,i)=>cart[p.id]=i?1:2);grid();cartUI();
-  if(!Object.keys(cart).length){toast('Primero cargá algún producto');return}
-  setTimeout(()=>{lines();open('shCart')},150)};
-$('fxEdit').onclick=()=>openEdit();
+/* ---------- Demo (solo con demo=1) ---------- */
+// Lo que la demo puede leer y cambiar del catálogo. Sin demo=1, demo.js ni se descarga (AC-020-1).
+const app={get T(){return T},set T(v){T=v},get precios(){return showPrices},set precios(v){showPrices=v},get cart(){return cart},
+  ls,toast,open,close,theme,render,grid,cartUI,lines,logoHTML,load};
+if(DEMO)demo=(await import('./demo.js')).iniciarDemo(app);
 
-/* ---------- Armar el negocio del cliente ---------- */
-function saveP(){const {colorOrig,...s}=T;if(!ls.set(PROPIA,s))toast('No hay más lugar en este celular: quitá algún producto')}
-function shrink(file,max){return new Promise((ok,ko)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');
-  c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.8))};im.onerror=ko;im.src=u})}
-function openEdit(){$('eName').value=T.nombre||'';$('eSub').value=T.bajada||'';eProds();open('shEdit')}
-window.openEdit=openEdit;
-function eProds(){
-  $('eProds').innerHTML=T.productos.map((p,i)=>`<div class="ep" data-i="${i}"><img src="${esc(p.img)}" alt=""><div><input data-f="n" value="${esc(p.n)}" placeholder="Nombre del producto" maxlength="50"><input data-f="p" value="${p.p??''}" inputmode="numeric" placeholder="Precio (opcional)"></div><button type="button" class="x" aria-label="Quitar">✕</button></div>`).join('');
-  $('eLogoLbl').textContent=T.logo?'Cambiar logo':'Elegir foto del logo';
-}
-$('eProds').oninput=e=>{const i=+e.target.closest('.ep').dataset.i,f=e.target.dataset.f,v=e.target.value;
-  if(f==='p'){const n=parseInt(v.replace(/\D/g,''),10);T.productos[i].p=isNaN(n)?null:n}else T.productos[i].n=v;saveP()};
-$('eProds').onclick=e=>{if(!e.target.closest('.x'))return;T.productos.splice(+e.target.closest('.ep').dataset.i,1);saveP();eProds()};
-$('eAdd').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
-  try{const img=await shrink(f,520);T.productos.push({id:'p'+Date.now(),n:'',img,p:null});saveP();eProds();
-    const last=$('eProds').lastElementChild;last&&last.querySelector('input').focus()}catch(err){toast('No se pudo abrir esa foto')}};
-$('eLogo').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{T.logo=await shrink(f,300);T.logoCuadrado=true;saveP();eProds();render()}catch(err){toast('No se pudo abrir esa foto')}};
-$('eName').oninput=()=>{T.nombre=$('eName').value;saveP()};$('eSub').oninput=()=>{T.bajada=$('eSub').value;saveP()};
-$('eDone').onclick=()=>{T.productos.forEach((p,i)=>{if(!p.n)p.n='Producto '+(i+1)});showPrices=T.productos.some(p=>p.p);T.precios=showPrices;saveP();close();render()};
-$('eReset').onclick=()=>{try{localStorage.removeItem(PROPIA)}catch(e){}T=Object.assign({},PROPIA_BASE,{colorOrig:PROPIA_BASE.color,productos:[]});theme(T.color);render();openEdit()};
-
-load(EJEMPLOS.some(([id])=>id===Q.get('t'))?Q.get('t'):'pueyrredon').then(()=>{if(DEMO&&T.id==='propia'&&!T.productos.length)openEdit()});
+const t=Q.get('t'),ids=[...TIENDAS,...(demo?.ids||[])];
+load(ids.includes(t)?t:'pueyrredon').then(()=>demo?.alAbrir());

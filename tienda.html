@@ -13,13 +13,6 @@
 <link rel="modulepreload" href="core/catalogo.js"><link rel="modulepreload" href="core/datos.js">
 </head>
 <body>
-<!-- Barra de demo: solo aparece en modo demostración -->
-<div class="demobar" id="demobar" hidden>
-  <span class="demo-tag">Demo</span>
-  <div class="demo-ex" id="demoEx" role="tablist" aria-label="Ejemplos"></div>
-  <button class="demo-fx" id="demoFx" type="button" aria-label="Funciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="fx-l">Funciones</span></button>
-</div>
-
 <!-- Vista: catálogo -->
 <div id="vCat">
   <header class="st-head">
@@ -49,41 +42,6 @@
     <label class="fld" id="cNameFld"><span>Tu nombre</span><input id="cName" autocomplete="name" placeholder="Para saber quién pide"></label>
     <button class="b b-wa b-big" id="sendOrder" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M9 9.5c.4 2 1.6 3.4 3.6 4.4"/></svg><span id="sendLbl">Enviar pedido por WhatsApp</span></button>
     <p class="sin-wa" id="sinWa" hidden>Este comercio todavía no cargó su WhatsApp</p>
-  </div>
-</section>
-
-<!-- Hoja: así le llega al negocio (solo demo) -->
-<section class="sheet chat" id="shChat" aria-label="Así le llega al negocio" hidden>
-  <div class="sh-head"><h2>Así le llega al negocio</h2><button class="x" data-close type="button" aria-label="Cerrar">✕</button></div>
-  <div class="ch-top"><div class="ch-av" id="chAv"></div><div><b id="chName"></b><small>WhatsApp del negocio</small></div></div>
-  <div class="ch-body"><div class="bub" id="bub"></div></div>
-  <p class="ch-note">En la versión real se abre WhatsApp con este mensaje listo para enviar.</p>
-</section>
-
-<!-- Hoja: funciones de la demo -->
-<section class="sheet" id="shFx" aria-label="Funciones" hidden>
-  <div class="sh-head"><h2>Mostrá cómo funciona</h2><button class="x" data-close type="button" aria-label="Cerrar">✕</button></div>
-  <div class="sh-body fx">
-    <button class="fx-row" id="fxOrder" type="button"><i>1</i><span><b>Pedido por WhatsApp</b><small>Suma productos y muestra cómo le llega el pedido al negocio</small></span></button>
-    <div class="fx-row as-lbl"><i>2</i><span><b>Mostrar u ocultar precios</b><small id="fxPriceHint">Cada negocio elige si los muestra</small></span><button class="sw" id="fxPrice" role="switch" aria-checked="false" type="button"><span></span></button></div>
-    <div class="fx-row as-lbl col"><span class="lbl-sm">Color de la marca</span><div class="sws" id="sws"></div></div>
-    <button class="fx-row" id="fxEdit" type="button" hidden><i>3</i><span><b>Editar este negocio</b><small>Nombre, color, logo y productos</small></span></button>
-  </div>
-</section>
-
-<!-- Hoja: armar el negocio del cliente -->
-<section class="sheet tall" id="shEdit" aria-label="Armá el catálogo" hidden>
-  <div class="sh-head"><h2>Armá el catálogo de tu cliente</h2><button class="x" data-close type="button" aria-label="Cerrar">✕</button></div>
-  <div class="sh-body">
-    <label class="fld"><span>Nombre del negocio</span><input id="eName" maxlength="40" placeholder="Ej.: Ferretería El Tornillo"></label>
-    <label class="fld"><span>Rubro o frase corta</span><input id="eSub" maxlength="60" placeholder="Ej.: Herramientas y bulonería"></label>
-    <div class="fld"><span>Logo <i>(opcional)</i></span><label class="up"><input id="eLogo" type="file" accept="image/*" class="vh"><span id="eLogoLbl">Elegir foto del logo</span></label></div>
-    <div class="fld"><span>Productos</span>
-      <div class="eprods" id="eProds"></div>
-      <label class="up add"><input id="eAdd" type="file" accept="image/*" class="vh">+ Sacar o elegir foto de un producto</label>
-    </div>
-    <button class="b b-brand b-big" id="eDone" type="button">Ver su catálogo</button>
-    <button class="b b-ghost" id="eReset" type="button">Empezar de cero</button>
   </div>
 </section>
 
