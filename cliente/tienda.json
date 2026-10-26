@@ -9,7 +9,6 @@
  "wa": "",
  "precios": true,
  "planilla": {
-  "web": "",
-  "ajustes": ""
+  "privada": true
  }
 }

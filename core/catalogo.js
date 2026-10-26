@@ -5,9 +5,10 @@
    Si el JSON trae planilla.web, los productos salen de la pestaña Web publicada como CSV (UC-010),
    y con planilla.ajustes el WhatsApp, el nombre, la bajada y los precios salen de la pestaña Ajustes (UC-011).
    Si una pestaña no responde o no es válida, se usa esa parte de catalogo-respaldo.json (AC-010-4).
+   Con planilla.privada, el comercio no publica nada: la tarea respaldo lee su archivo y la web muestra catalogo-respaldo.json.
    Con demo=1 se carga además la demo (demo.js): ejemplos, Funciones y "Tu cliente".
    La lógica pura (búsqueda, categorías, formatos) vive en datos.js. */
-import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV, ajustesDesdeCSV, aplicarAjustes, esPestana } from './datos.js';
+import { esc, money, sinAcentos, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV, ajustesDesdeCSV, aplicarAjustes, esPestana } from './datos.js';
 
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
@@ -30,18 +31,38 @@ async function load(id){
     const pl=T.planilla||{},[web,ajustes]=await Promise.all([leerPestana(pl.web),leerPestana(pl.ajustes)]);
     // El respaldo se pide solo si alguna pestaña falló, y una sola vez; el comprador no ve ningún aviso.
     let respaldo;const deRespaldo=()=>respaldo??=leerRespaldo();
-    if(pl.web){
-      const prods=esPestana(web,'nombre')?productosDesdeCSV(web):[];
-      T.productos=prods.length?prods:(await deRespaldo())?.productos||[];
-      T.sinCatalogo=!T.productos.length;
+    if(pl.privada){
+      const r=await deRespaldo();
+      T.productos=r?.productos||[];T.sinCatalogo=!T.productos.length;T=aplicarAjustes(T,r?.ajustes);
+    }else{
+      if(pl.web){
+        const prods=esPestana(web,'nombre')?productosDesdeCSV(web):[];
+        T.productos=prods.length?prods:(await deRespaldo())?.productos||[];
+        T.sinCatalogo=!T.productos.length;
+      }
+      const aj=esPestana(ajustes,'ajuste')?ajustesDesdeCSV(ajustes):pl.ajustes?(await deRespaldo())?.ajustes||{}:{};
+      T=aplicarAjustes(T,aj);
     }
-    const aj=esPestana(ajustes,'ajuste')?ajustesDesdeCSV(ajustes):pl.ajustes?(await deRespaldo())?.ajustes||{}:{};
-    T=aplicarAjustes(T,aj);
   }
   T.productos=T.productos||[];
   T.colorOrig=T.colorOrig||T.color;
-  showPrices=!!T.precios;cart={};cat='Todo';
+  showPrices=!!T.precios;cart={};cat=categoriaPedida();$('q').value=Q.get('q')||'';
   theme(T.color);render();
+  if(cat!=='Todo')$('cats').querySelector('.on')?.scrollIntoView({inline:'center',block:'nearest'});
+  if(!DEMO)medir(T.ga4);
+}
+// Con cat=<categoría> o q=<búsqueda> en la URL el catálogo abre filtrado, para enlazar un rubro o un producto desde otra página (UC-001).
+function categoriaPedida(){
+  const q=sinAcentos(Q.get('cat')||'').trim();
+  return categorias(T.productos).find(c=>sinAcentos(c).trim()===q)||'Todo';
+}
+// GA4 opcional por cliente (SPEC.md §3, regla hard 6). Solo se cuentan visitas y pedidos enviados: nunca el nombre ni el mensaje (regla hard 5).
+let gtag=()=>{};
+function medir(id){
+  if(!/^G-[A-Z0-9]+$/.test(id||''))return;
+  window.dataLayer=window.dataLayer||[];gtag=function(){dataLayer.push(arguments)};
+  gtag('js',new Date());gtag('config',id);
+  const s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+id;document.head.append(s);
 }
 // Sin caché del navegador: un cambio en la planilla se ve al recargar (AC-010-1). Si una pestaña no responde da null.
 async function leerPestana(url){
@@ -152,7 +173,7 @@ $('sendOrder').onclick=()=>sendWA(orderMsg());
 function sendWA(msg){
   const url=linkWhatsApp(T.wa,msg);
   if(demo){demo.chat(msg);return}
-  if(url)location.href=url;
+  if(url){gtag('event','enviar_pedido',{productos:cartItems().length});location.href=url}
 }
 
 /* ---------- Hojas ---------- */

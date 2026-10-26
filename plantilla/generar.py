@@ -21,7 +21,7 @@ EJEMPLOS = [
 ]
 AJUSTES = [
     ['WhatsApp', '', 'Con código de país, sin + ni espacios. Ejemplo: 5491112345678'],
-    ['Precios', 'SÍ', 'SÍ muestra los precios en la web. NO los esconde del todo, también de la pestaña Web.'],
+    ['Precios', 'SÍ', 'SÍ muestra los precios en la web. NO los esconde del todo: no llegan a la web.'],
     ['Nombre', '', 'Opcional: reemplaza el nombre del comercio en la web.'],
     ['Bajada', '', 'Opcional: la frase que va debajo del nombre.'],
 ]
@@ -35,8 +35,8 @@ AYUDA = [
     '5. Visible: poné NO para esconder un producto sin borrarlo. Vacío cuenta como SÍ.',
     '6. Código: si se repite, la web muestra solo la primera fila con ese código.',
     '7. En Ajustes cargá tu WhatsApp y elegí si se ven los precios.',
-    '8. No edites la pestaña Web: se arma sola desde Productos y Ajustes. Web y Ajustes son las únicas pestañas que se publican.',
-    '9. Los cambios tardan hasta 5 minutos en verse en la web.',
+    '8. No edites la pestaña Web: se arma sola desde Productos y Ajustes.',
+    '9. Los cambios pueden tardar hasta 20 minutos en verse en la web.',
     f'10. La pestaña Web está preparada para {FILAS_WEB:,} productos. Si tenés más, copiá su última fila hacia abajo.'.replace(',', '.'),
 ]
 
