@@ -47,19 +47,29 @@ export const TITULOS_PLANILLA = ['Código', 'Nombre', 'Categoría', 'Descripció
 const celdaCSV = v => /[",\n]/.test(String(v ?? '')) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? '');
 export const aCSV = filas => [TITULOS_PLANILLA, ...filas].map(f => f.map(celdaCSV).join(',')).join('\r\n');
 // Con ajustes ([['Precios', 'NO'], ...]) también se publica la pestaña Ajustes; planilla.ajustesCSV se puede cambiar
-// entre recargas, y con planilla.ajustesCaida = true esa pestaña responde con error.
+// entre recargas, y con planilla.ajustesCaida = true esa pestaña responde con error (planilla.webCaida, la pestaña Web).
 export const URL_AJUSTES = URL_PLANILLA.replace('gid=0', 'gid=1');
 export const ajustesCSV = filas => [['Ajuste', 'Valor', 'Para qué sirve'], ...filas].map(f => f.map(celdaCSV).join(',')).join('\r\n');
 export async function abrirPlanilla(page, filas, tienda, ajustes) {
-  const planilla = { csv: aCSV(filas), lecturas: 0, ajustesCSV: ajustes && ajustesCSV(ajustes), ajustesCaida: false };
+  const planilla = { csv: aCSV(filas), lecturas: 0, webCaida: false, ajustesCSV: ajustes && ajustesCSV(ajustes), ajustesCaida: false };
   const urls = { web: URL_PLANILLA, ...(ajustes && { ajustes: URL_AJUSTES }) };
   const datos = await simularCatalogo(page, { productos: undefined, planilla: urls, ...tienda });
   // Registradas después del corte de llamadas externas, así que estas URLs se atienden acá.
-  await page.route(URL_PLANILLA, r => { planilla.lecturas++; return r.fulfill({ body: planilla.csv, contentType: 'text/csv' }); });
+  await page.route(URL_PLANILLA, r => { planilla.lecturas++; return planilla.webCaida ? r.fulfill({ status: 500 }) : r.fulfill({ body: planilla.csv, contentType: 'text/csv' }); });
   await page.route(URL_AJUSTES, r => planilla.ajustesCaida ? r.fulfill({ status: 500 }) : r.fulfill({ body: planilla.ajustesCSV, contentType: 'text/csv' }));
   await page.goto('/tienda.html?t=pled&demo=0');
   await expect(page.locator('#grid .pc, #empty').first()).toBeVisible();
   return planilla;
+}
+
+// Copia que guarda la tarea respaldo (STORY-003); con null el archivo no existe. respaldo.pedidos cuenta las lecturas.
+export async function servirRespaldo(page, copia) {
+  const respaldo = { pedidos: 0 };
+  await page.route('**/catalogo-respaldo.json', r => {
+    respaldo.pedidos++;
+    return copia ? r.fulfill({ json: { actualizado: '2026-10-26T00:00:00.000Z', ajustes: {}, ...copia } }) : r.fulfill({ status: 404 });
+  });
+  return respaldo;
 }
 
 // Abre el catálogo simulado tal como lo ve un comprador (sin barra de demo).
