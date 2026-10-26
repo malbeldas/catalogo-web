@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { esPestana, productosDesdeCSV, ajustesDesdeCSV, ajustesDesdeFilas, respaldoDesdeFilas, numeroWhatsApp, sinAcentos } from '../core/datos.js';
 import { bajarArchivo } from './respaldo.mjs';
+import { esLinkResena } from './alta.mjs';
 
 const BASE = fileURLToPath(new URL('..', import.meta.url));
 const MOLDE = JSON.parse(await readFile(join(BASE, 'cliente', 'tienda.json'), 'utf8'));
@@ -23,6 +24,7 @@ export function revisarTienda(t) {
   if (!t.planilla?.privada) for (const k of ['web', 'ajustes'])
     if (!CSV_PUBLICADO.test(t.planilla?.[k] ?? '')) mal.push(`tienda.json: planilla.${k} tiene que ser el link CSV de "Publicar en la Web", o usá planilla.privada con el secreto PLANILLA_URL`);
   if (!t.logo) mal.push('tienda.json: falta el logo');
+  if (t.resenas && !esLinkResena(t.resenas)) mal.push('tienda.json: resenas tiene que ser el link de "Pedir reseñas" del Perfil de Empresa de Google (https://g.page/r/…/review)');
   return mal;
 }
 
@@ -80,7 +82,8 @@ export async function verificarAlta(carpeta, { fetch = globalThis.fetch, base = 
   if (!tienda) return mal;
   if (tienda.logo && !existsSync(join(carpeta, tienda.logo))) mal.push(`no existe el logo ${tienda.logo}`);
   if (!existsSync(join(carpeta, 'index.html'))) mal.push('falta index.html: corré node scripts/alta.mjs');
-  for (const f of ['index.html', 'tienda.json', ...(await readdir(join(carpeta, 'core')).catch(() => [])).map(f => 'core/' + f)]) {
+  if (esLinkResena(tienda.resenas) && !existsSync(join(carpeta, 'resena.html'))) mal.push('falta resena.html: corré node scripts/alta.mjs');
+  for (const f of ['index.html', 'resena.html', 'tienda.json', ...(await readdir(join(carpeta, 'core')).catch(() => [])).map(f => 'core/' + f)]) {
     const texto = await readFile(join(carpeta, f), 'utf8').catch(() => '');
     for (const marca of marcasAjenas(texto, tienda.nombre)) mal.push(`${f} menciona "${marca}" (regla hard 7)`);
   }

@@ -1,6 +1,6 @@
 /* Alta de un cliente (UC-021): arma en una carpeta todo lo que va a su repo, sin nada de la base.
    Copia core/ sin demo.js, la tarea de respaldo y un tienda.json para completar, y genera index.html
-   desde tienda.html. No pisa tienda.json ni img/ si ya existen: lo propio del cliente no se toca (regla hard 2).
+   desde tienda.html. Con tienda.resenas genera también resena.html, adonde apunta el QR de reseñas (UC-023). No pisa tienda.json ni img/ si ya existen: lo propio del cliente no se toca (regla hard 2).
    Con una subcarpeta, el catálogo va dentro de un sitio que ya existe (por ejemplo /catalogo/) y la tarea de
    respaldo queda en la raíz del repo, corriendo en esa subcarpeta.
    Uso: node scripts/alta.mjs <repo del cliente> [subcarpeta] */
@@ -28,6 +28,40 @@ export function paginaCliente(html, tienda = {}) {
   return p;
 }
 
+// Link de reseña del Perfil de Empresa de Google: el corto de "Pedir reseñas" o el de writereview con el place ID.
+export const esLinkResena = link =>
+  /^https:\/\/(g\.page\/r\/[\w-]+\/review|search\.google\.com\/local\/writereview\?placeid=[\w-]+)([?&#][^\s"'<>]*)?$/.test(String(link ?? ''));
+
+// resena.html: el QR impreso apunta acá y no a Google, así sigue sirviendo si cambia el link.
+// Manda directo al formulario de reseña, sin pedir estrellas ni ofrecer nada (AC-023-1, política de Google).
+// Con GA4 cuenta el escaneo como resena_qr, sin datos de quien escanea (AC-023-3, regla hard 5).
+export function paginaResena(tienda = {}) {
+  if (!esLinkResena(tienda.resenas)) return null;
+  const destino = esc(tienda.resenas), nombre = esc(tienda.nombre || ''), ga4 = /^G-[A-Z0-9]+$/.test(tienda.ga4 || '') ? tienda.ga4 : '';
+  const medir = ga4 ? `
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','${ga4}',{send_page_view:false});
+gtag('event','resena_qr',{transport_type:'beacon',event_callback:ir});setTimeout(ir,1000);
+var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id=${ga4}';document.head.append(s);` : '\nir();';
+  return `<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Reseña · ${nombre}</title>
+<noscript><meta http-equiv="refresh" content="0;url=${destino}"></noscript>
+<script>
+var listo=false;function ir(){if(!listo){listo=true;location.replace(${JSON.stringify(tienda.resenas)})}}${medir}
+</script>
+</head>
+<body style="font:16px/1.4 system-ui,sans-serif;text-align:center;padding:40px 20px">
+<p><a href="${destino}">Dejar una reseña de ${nombre} en Google</a></p>
+</body>
+</html>
+`;
+}
+
 // La tarea de respaldo de un catálogo en subcarpeta: GitHub solo lee los workflows de la raíz del repo.
 export function workflowEnSubcarpeta(yml, sub) {
   if (!sub) return yml;
@@ -48,6 +82,8 @@ export async function armarAlta(repo, { base = BASE, sub = '' } = {}) {
   await mkdir(join(destino, 'img'), { recursive: true });
   const tienda = JSON.parse(await readFile(join(destino, 'tienda.json'), 'utf8'));
   await writeFile(join(destino, 'index.html'), paginaCliente(await readFile(join(base, 'tienda.html'), 'utf8'), tienda));
+  const resena = paginaResena(tienda);
+  if (resena) await writeFile(join(destino, 'resena.html'), resena);
   return { nuevo };
 }
 

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, readdir, writeFile, appendFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { paginaCliente, armarAlta, workflowEnSubcarpeta } from '../../scripts/alta.mjs';
+import { paginaCliente, armarAlta, workflowEnSubcarpeta, paginaResena, esLinkResena } from '../../scripts/alta.mjs';
 import { revisarTienda, revisarPestanas, revisarPrivada, marcasAjenas, revisarNucleo, verificarAlta } from '../../scripts/verificar-alta.mjs';
 
 const BASE = new URL('../../', import.meta.url).pathname;
@@ -146,4 +146,42 @@ test('BR-PRE-001 con planilla privada y Precios = NO la verificación falla si l
   assert.match(revisarPrivada(null, { productos: [{ n: 'A', p: 900 }], ajustes: { precios: false } }, t).join(), /BR-PRE-001/);
   assert.match(revisarPrivada(null, { productos: [{ n: 'A', antes: 900 }], ajustes: {} }, { precios: false }).join(), /BR-PRE-001/);
   assert.deepEqual(revisarPrivada(null, { productos: [{ n: 'A', p: null }], ajustes: { precios: false } }, t), []);
+});
+
+const RESENA = 'https://g.page/r/CaAbC123xyz/review';
+
+test('AC-023-1 resena.html manda directo al formulario de Google, sin estrellas ni nada a cambio', () => {
+  const p = paginaResena({ nombre: 'Kiosco <Ana>', resenas: RESENA });
+  assert.match(p, /location\.replace\("https:\/\/g\.page\/r\/CaAbC123xyz\/review"\)/);
+  assert.match(p, /<meta http-equiv="refresh" content="0;url=https:\/\/g\.page\/r\/CaAbC123xyz\/review">/);
+  assert.match(p, /<meta name="robots" content="noindex">/);
+  assert.match(p, /Kiosco &lt;Ana&gt;/);
+  assert.doesNotMatch(p, /estrella|descuento|regalo|OFF|%|c[oó]digo|googletagmanager/i);
+  assert.equal(paginaResena({ nombre: 'Sin link' }), null);
+  assert.equal(paginaResena({ resenas: 'https://ejemplo.com/"><script>' }), null);
+});
+
+test('AC-023-3 con GA4 resena.html cuenta resena_qr antes de ir a Google, sin datos de quien escanea', () => {
+  const p = paginaResena({ nombre: 'Kiosco Ana', resenas: RESENA, ga4: 'G-PRUEBA123' });
+  assert.match(p, /gtag\('event','resena_qr',\{transport_type:'beacon',event_callback:ir\}\)/);
+  assert.match(p, /setTimeout\(ir,1000\)/);
+  assert.match(p, /googletagmanager\.com\/gtag\/js\?id=G-PRUEBA123/);
+  assert.doesNotMatch(paginaResena({ resenas: RESENA, ga4: 'UA-1' }), /googletagmanager/);
+});
+
+test('AC-023-1 links de reseña de Google válidos e inválidos', () => {
+  for (const ok of [RESENA, 'https://g.page/r/CaAbC123xyz/review?rc', 'https://search.google.com/local/writereview?placeid=ChIJ_abc-123'])
+    assert.ok(esLinkResena(ok), ok);
+  for (const mal of ['', null, 'http://g.page/r/X/review', 'https://g.page/r/X', 'https://maps.app.goo.gl/abc', 'https://g.page/r/X/review"><x>'])
+    assert.ok(!esLinkResena(mal), String(mal));
+});
+
+test('UC-023 el alta genera resena.html solo con resenas, y la verificación revisa el link', async () => {
+  const dir = await altaCompleta();
+  await assert.rejects(readFile(join(dir, 'resena.html')));
+  await writeFile(join(dir, 'tienda.json'), JSON.stringify({ ...tienda, resenas: RESENA }));
+  await armarAlta(dir);
+  assert.match(await readFile(join(dir, 'resena.html'), 'utf8'), /g\.page\/r\/CaAbC123xyz\/review/);
+  assert.deepEqual(await verificarAlta(dir, { fetch: planilla(WEB, AJUSTES()) }), []);
+  assert.match(revisarTienda({ ...tienda, resenas: 'https://maps.app.goo.gl/abc' }).join(), /resenas tiene que ser el link de "Pedir reseñas"/);
 });
