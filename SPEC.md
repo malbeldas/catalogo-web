@@ -36,7 +36,9 @@
 
 Catálogo web que se vende a comercios de cualquier rubro. Cada comercio tiene su propia web con su logo y colores, muestra sus productos con foto, elige si muestra precios o no, y recibe pedidos y consultas por WhatsApp. No hay pagos online, cuentas de usuario ni panel propio: el comercio administra sus productos desde su planilla, la que ya sabe usar (una Hoja de Google, un Excel o un CSV en su Google Drive).
 
-El repo `malbeldas/catalogo-web` es el **producto base**. Contiene el núcleo del catálogo, la portada de venta y la demo que Maxi muestra desde el celular a posibles clientes (ejemplo mayorista, ejemplo minorista y un catálogo armado en el momento con fotos del cliente). Cada cliente real recibe **un repo propio creado a partir de la base**, publicado gratis en GitHub Pages. Un comercio que ya tiene sitio puede llevar el catálogo en una subcarpeta de su repo.
+El repo `malbeldas/catalogo-web` es el **producto base**. Contiene el núcleo del catálogo, la portada de venta y la demo que Maxi muestra desde el celular a posibles clientes (ejemplo mayorista, ejemplo minorista y un catálogo armado en el momento con fotos del cliente). Cada cliente real recibe **un repo propio creado a partir de la base**, publicado gratis en GitHub Pages. El disparador de Google vive en la base, en `disparador/Codigo.gs`, y no se copia a los clientes.
+
+Un comercio que ya tiene sitio puede llevar el catálogo en una subcarpeta de su repo.
 
 Los extras de Distribuidora Pueyrredón (QR de reseñas con beneficio y probador de luces) **no forman parte de la base**: son diferenciales de Pueyrredón y viven solo en su repo. La base sí ofrece a cada cliente un QR de reseñas de Google **sin** beneficio (UC-023).
 
@@ -78,6 +80,7 @@ Los extras de Distribuidora Pueyrredón (QR de reseñas con beneficio y probador
 - AC-010-3: una fila sin nombre se ignora sin romper el resto del catálogo.
 - AC-010-4: si la planilla no responde, la web muestra la última copia guardada del catálogo.
 - AC-010-5: el comercio puede usar su planilla tal como la tiene (Hoja de Google, Excel o CSV en Drive) compartida con "cualquiera con el enlace", sin publicar nada.
+- AC-010-6: con la planilla privada, la tarea respaldo de cada cliente se pide cada 15 minutos desde el disparador de Google, sin depender del cron de GitHub. Si GitHub rechaza el pedido, el dueño del disparador recibe un mail.
 
 **UC-011 — Mostrar u ocultar precios**
 - AC-011-1: con Precios = NO no aparece ningún precio en la página (ni en el HTML), ni el porcentaje de descuento, ni el total.
@@ -160,8 +163,11 @@ No hay base de datos. Los datos viven en tres lugares:
 - Pedido: navegación a `https://wa.me/<número>?text=<mensaje>`.
 
 **Tareas programadas (GitHub Actions, gratis en repo público)**
-- `respaldo` — cada 15 minutos baja la planilla (el archivo de `PLANILLA_URL` o las pestañas publicadas), la valida y, si cambió, actualiza `catalogo-respaldo.json`.
+- `respaldo` — baja la planilla (el archivo de `PLANILLA_URL` o las pestañas publicadas), la valida y, si cambió, actualiza `catalogo-respaldo.json`. La pide cada 15 minutos el disparador de Google; el cron de GitHub queda de respaldo.
 - `ci` — en cada push y PR corre los tests.
+
+**Disparador (Google Apps Script, en la cuenta del vendedor)**
+- `disparar` — cada 15 minutos pide a GitHub correr `respaldo` en cada repo de la lista `CLIENTES`, con un token que solo puede disparar Actions. Los tokens y la lista viven en las propiedades del script, nunca en un repo.
 
 ---
 
@@ -190,7 +196,7 @@ No hay base de datos. Los datos viven en tres lugares:
 - **Runtime:** navegador. HTML, CSS y JavaScript sin framework ni paso de build (ES modules nativos).
 - **Datos:** el archivo del comercio en Google Drive (Hoja de Google, Excel o CSV), leído por la tarea respaldo; o Google Sheets publicada como CSV (gratis).
 - **Hosting:** GitHub Pages, un repo por cliente (gratis).
-- **Automatización:** GitHub Actions (respaldo programado y CI), gratis en repos públicos.
+- **Automatización:** GitHub Actions (respaldo y CI), gratis en repos públicos. Google Apps Script en la cuenta del vendedor pide la tarea respaldo de cada cliente cada 15 minutos.
 - **Medición:** GA4 opcional por cliente.
 - **Testing:** `node:test` (unit, sin dependencias) + Playwright con Chromium en emulación de celular (E2E).
 
@@ -217,13 +223,15 @@ SPEC.md
 CLAUDE.md
 ```
 
+El disparador de Google vive en la base, en `disparador/Codigo.gs`, y no se copia a los clientes.
+
 Un comercio que ya tiene sitio puede llevar el catálogo en una subcarpeta (`scripts/alta.mjs <repo> catalogo`); la tarea de respaldo queda en la raíz y corre en esa subcarpeta.
 
 ---
 
 ## 7. Reglas hard del proyecto
 
-1. **Costo cero.** Solo GitHub Pages, GitHub Actions de repo público y Google Drive (Hojas de Google, Excel o CSV). Ningún servicio pago sin decisión de Maxi.
+1. **Costo cero.** Solo GitHub Pages, GitHub Actions de repo público, Google Drive (Hojas de Google, Excel o CSV) y Google Apps Script. Ningún servicio pago sin decisión de Maxi.
 2. **`core/` es idéntico en todos los repos.** Lo propio de cada cliente vive solo en `tienda.json`, `img/` y su planilla. Un cambio al núcleo se hace en la base y se propaga (UC-022); nunca se edita `core/` en un repo de cliente.
 3. **Lógica sin DOM en `core/datos.js`.** Todo lo que transforma datos (CSV, precios, búsqueda, mensaje) es función pura con test unitario.
 4. **Precios ocultos = precios ausentes** (BR-PRE-001): ni en el HTML, ni en el mensaje, ni en `catalogo-respaldo.json`, ni en la pestaña publicada.
@@ -241,6 +249,9 @@ Evaluado: panel propio con base de datos (Supabase). Descartado: costo y curva d
 
 **El archivo del comercio tal como lo tiene, leído por la tarea respaldo.**
 Evaluado: CSV publicado leído por la web (lo que había). Descartado como modo por defecto: obliga a una Hoja de Google con pestañas armadas y al paso "Publicar en la Web", que un Excel subido no tiene, y deja al comercio atado a un formato. Costo aceptado: los cambios se ven en unos 15 a 20 minutos en lugar de 5. Decisión de Maxi (2026-10-26). El CSV publicado queda para clientes que ya lo usan.
+
+**La tarea respaldo la dispara un Apps Script cada 15 minutos.**
+Evaluado: solo el cron de GitHub. Descartado: en la práctica casi no corre (en Pueyrredón, ninguna vez en las primeras horas después del merge; en la base, una vez en 18 horas). Evaluado: un servicio de cron externo gratis. Descartado: un proveedor más con el token adentro. Apps Script está en la misma cuenta de Google que ya se usa, es gratis y un solo script sirve para todos los clientes. Decisión de Maxi (2026-10-26).
 
 **Lectura directa del CSV publicado, con respaldo programado** (clientes con la planilla publicada).
 Evaluado: solo build programado (la web lee un JSON generado cada X horas). Descartado como única vía porque el comercio espera ver sus cambios al rato. Evaluado: Apps Script como API. Descartado: requiere que cada comercio implemente un script. El CSV publicado no pide nada al comercio; el respaldo cubre caídas.
@@ -261,8 +272,10 @@ Evaluado: llevar el QR de Pueyrredón (con 5% OFF) a la base. Descartado: Google
 
 ## 9. Riesgos conocidos
 
-- **Demora en verse los cambios:** hasta 5 minutos con la planilla publicada y unos 15 a 20 con la privada; GitHub puede demorar las tareas programadas cuando tiene mucha carga. Se avisa en la planilla plantilla.
-- **Tareas programadas pausadas:** GitHub pausa las tareas programadas de un repo público sin actividad por 60 días. Con la planilla privada, la web queda con la última copia hasta reactivarla desde Actions.
+- **Demora en verse los cambios:** hasta 5 minutos con la planilla publicada y unos 15 a 20 con la privada. Se avisa en la planilla plantilla.
+- **Token vencido:** los tokens de GitHub de grano fino vencen (como mucho al año). Al vencer, el disparador falla, llega un mail y la web queda con la última copia hasta renovarlo.
+- **Límite de Apps Script:** los disparadores de una cuenta gratis corren como mucho 90 minutos por día; alcanza para unos 25 clientes cada 15 minutos.
+- **Cron pausado:** GitHub pausa las tareas programadas de un repo público sin actividad por 60 días. Solo afecta al cron de respaldo; el disparador de Google sigue pidiendo la tarea.
 - **Fotos desde Google Drive:** dependen de un enlace no oficial de miniaturas; si Google lo cambia, las fotos dejan de verse hasta ajustar `core/datos.js`. Alternativa: subir fotos a `img/` del repo.
 - **Lo publicado es público:** cualquier dato en la pestaña publicada se puede leer aunque la web no lo muestre (mitigado por BR-PRE-001). Con la planilla privada, quien tenga el link del archivo ve todo lo que tiene; por eso el link vive solo en el secreto del repo.
 - **Propagar el núcleo a muchos repos:** con 20+ clientes hace falta automatizar UC-022; hasta 5 clientes alcanza con un script manual.
