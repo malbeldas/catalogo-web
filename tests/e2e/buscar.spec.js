@@ -104,6 +104,7 @@ test('UC-001 con cat=<categoría> en la URL el catálogo abre en esa categoría,
   await simularCatalogo(page, { productos: ejemplo });
   await page.goto('/tienda.html?t=pled&cat=lamparas');
   await expect(page.locator('#cats button.on')).toHaveText('Lámparas');
+  await expect(page.locator('#cats button.on')).toBeInViewport();
   await expect(page.locator('#grid .pc h3')).toHaveText(['Lámpara vintage G125']);
   await page.goto('/tienda.html?t=pled&cat=no-existe');
   await expect(page.locator('#cats button.on')).toHaveText('Todo');

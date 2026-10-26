@@ -42,6 +42,7 @@ async function load(id){
   T.colorOrig=T.colorOrig||T.color;
   showPrices=!!T.precios;cart={};cat=categoriaPedida();$('q').value=Q.get('q')||'';
   theme(T.color);render();
+  if(cat!=='Todo')$('cats').querySelector('.on')?.scrollIntoView({inline:'center',block:'nearest'});
   if(!DEMO)medir(T.ga4);
 }
 // Con cat=<categoría> o q=<búsqueda> en la URL el catálogo abre filtrado, para enlazar un rubro o un producto desde otra página (UC-001).
