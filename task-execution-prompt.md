@@ -23,7 +23,7 @@ Lectura condicional según el tipo de tarea:
 
 ## 👨‍💻 Tu rol
 
-Sos un dev senior **frontend en JavaScript vanilla (ES modules, sin framework ni build)**, con experiencia en sitios estáticos sobre GitHub Pages, mobile first y testing con `node:test` y Playwright. Trabajás en el Catálogo web de marca blanca. Stack: HTML, CSS, JavaScript en el navegador, Google Sheets publicada como CSV, GitHub Pages y GitHub Actions. Respetás el corte entre lógica pura (`core/datos.js`) y pantalla (`core/catalogo.js`) que define `SPEC.md` §6.
+Sos un dev senior **frontend en JavaScript vanilla (ES modules, sin framework ni build)**, con experiencia en sitios estáticos sobre GitHub Pages, mobile first y testing con `node:test` y Playwright. Trabajás en el Catálogo web de marca blanca. Stack: HTML, CSS, JavaScript en el navegador, el archivo del comercio en Google Drive (Hoja, Excel o CSV), GitHub Pages y GitHub Actions. Respetás el corte entre lógica pura (`core/datos.js`) y pantalla (`core/catalogo.js`) que define `SPEC.md` §6.
 
 ## 📋 Task Input
 
@@ -65,7 +65,7 @@ Citar textual (breve) cada regla o criterio que condiciona la implementación, c
 
 #### 1.3 Escaneo de código existente
 
-Revisar `app.js`, `app.css`, `tienda.html`, `index.html`, `tiendas/` y, cuando existan, `core/`, `tests/` y `.github/workflows/`. Identificar funciones reutilizables antes de escribir nuevas. Anotar desvíos del código respecto del spec que afecten la tarea.
+Revisar `core/`, `scripts/`, `tienda.html`, `index.html`, `tiendas/`, `cliente/`, `tests/` y `.github/workflows/`. Identificar funciones reutilizables antes de escribir nuevas. Anotar desvíos del código respecto del spec que afecten la tarea.
 
 #### 1.4 Buenas prácticas / estándares aplicables
 

@@ -11,7 +11,7 @@ description: Governance file for AI coding agents working on catalogo-web. Defin
 
 ## 1. Qué es este proyecto
 
-Catálogo web de marca blanca para comercios de cualquier rubro: productos con foto, precios visibles u ocultos y pedidos por WhatsApp, administrado por cada comercio desde su propia planilla de Google. Este repo (`malbeldas/catalogo-web`) es el **producto base**: contiene el núcleo, la portada de venta y la demo. Cada cliente real tiene un repo propio creado desde esta base (`SPEC.md` §1). Fase actual: el código vive en `app.js`/`app.css` y todavía no está separado en `core/` (`SPEC.md` §6).
+Catálogo web de marca blanca para comercios de cualquier rubro: productos con foto, precios visibles u ocultos y pedidos por WhatsApp, administrado por cada comercio desde su propia planilla (Hoja de Google, Excel o CSV en su Drive). Este repo (`malbeldas/catalogo-web`) es el **producto base**: contiene el núcleo, la portada de venta y la demo. Cada cliente real tiene un repo propio creado desde esta base (`SPEC.md` §1).
 
 No hay glosario separado; los términos del dominio (comercio, comprador, planilla, pestaña Web, respaldo, núcleo) están definidos en `SPEC.md` §1 y §3.
 
@@ -20,7 +20,7 @@ No hay glosario separado; los términos del dominio (comercio, comprador, planil
 ## 2. Stack (resumen — fuente de verdad: `SPEC.md` §6)
 
 - HTML, CSS y JavaScript en el navegador, sin framework ni paso de build (ES modules nativos).
-- Datos del comercio: Google Sheets publicada como CSV (pestañas `Web` y `Ajustes`).
+- Datos del comercio: su archivo en Google Drive (Hoja de Google, Excel o CSV), que la tarea respaldo lee con el link del secreto `PLANILLA_URL` y guarda en `catalogo-respaldo.json`. Los clientes anteriores publican las pestañas `Web` y `Ajustes` como CSV.
 - Hosting: GitHub Pages, un repo por cliente. Se publica lo que está en `main`.
 - Automatización: GitHub Actions (CI y respaldo programado del catálogo).
 - Medición: GA4 opcional por cliente.
@@ -54,7 +54,7 @@ Si dos fuentes se contradicen:
 1. `SPEC.md` gana sobre todo lo demás, incluido el código.
 2. `CLAUDE.md` gana sobre `README.md` y sobre el texto de un issue en temas de proceso (cómo se trabaja).
 3. Un issue no puede ampliar el alcance de `SPEC.md`: si pide algo que el spec no contempla o contradice, primero se propone el cambio al spec (§4.5).
-4. El código actual es la referencia más débil: si difiere del spec, es un desvío a corregir (ejemplo conocido: `SPEC.md` §9, barra de demo por defecto).
+4. El código actual es la referencia más débil: si difiere del spec, es un desvío a corregir.
 
 Si después de aplicar las reglas anteriores el conflicto persiste: **detenerse y reportar la discrepancia** al humano antes de codear.
 
@@ -90,10 +90,10 @@ Resumen:
 
 Citadas de `SPEC.md` §7:
 
-1. **Costo cero.** Solo GitHub Pages, GitHub Actions de repo público y Google Sheets. Ningún servicio pago sin decisión de Maxi.
+1. **Costo cero.** Solo GitHub Pages, GitHub Actions de repo público y Google Drive (Hojas de Google, Excel o CSV). Ningún servicio pago sin decisión de Maxi.
 2. **`core/` es idéntico en todos los repos.** Lo propio de cada cliente vive solo en `tienda.json`, `img/` y su planilla. Un cambio al núcleo se hace en la base y se propaga (UC-022); nunca se edita `core/` en un repo de cliente.
 3. **Lógica sin DOM en `core/datos.js`.** Todo lo que transforma datos (CSV, precios, búsqueda, mensaje) es función pura con test unitario.
-4. **Precios ocultos = precios ausentes** (BR-PRE-001): ni en el HTML, ni en el mensaje, ni en la pestaña publicada.
+4. **Precios ocultos = precios ausentes** (BR-PRE-001): ni en el HTML, ni en el mensaje, ni en `catalogo-respaldo.json`, ni en la pestaña publicada.
 5. **Ningún dato personal guardado.** El nombre del comprador solo viaja en el mensaje de WhatsApp: nunca en la URL de la web, en GA4 ni en `localStorage`.
 6. **Mobile first.** Todo se prueba a 375 px. Sin scripts externos salvo GA4 y Google Fonts.
 7. **Marca blanca de verdad.** El sitio de un cliente no muestra nada de Pueyrredón, PLED ni del proveedor del catálogo. No se usa el nombre "Mostrador".
@@ -119,11 +119,10 @@ Si la tarea introduce contexto nuevo (una decisión, un caso de error, un AC), p
 
 ## 5. Lo que NO está cubierto por la documentación (todavía)
 
-- **Diseño visual:** no hay design system. Colores y logo salen de `tienda.json` de cada cliente; para todo lo demás, seguir el estilo existente en `app.css`.
+- **Diseño visual:** no hay design system. Colores y logo salen de `tienda.json` de cada cliente; para todo lo demás, seguir el estilo existente en `core/catalogo.css`.
 - **Glosario:** no hay archivo propio (ver §1).
 - **Seguridad:** no hay doc dedicado; las reglas hard 4 y 5 cubren lo esencial.
-- **Herramientas de test todavía sin instalar:** no existen `package.json`, `tests/` ni `.github/workflows/ci.yml`. Crearlos es parte de la primera tarea técnica.
-- **Preguntas abiertas de negocio:** `SPEC.md` §10 (precio del alta, dominios, cuentas de GitHub, migración de Pueyrredón).
+- **Preguntas abiertas de negocio:** `SPEC.md` §10 (dominios y cuentas de GitHub).
 
 ---
 

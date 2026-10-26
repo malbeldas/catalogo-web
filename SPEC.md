@@ -204,18 +204,16 @@ SPEC.md
 CLAUDE.md
 ```
 
-Hoy el código está en `app.js` y `app.css` sin separar; la división en `core/` es la primera tarea técnica.
-
 Un comercio que ya tiene sitio puede llevar el catálogo en una subcarpeta (`scripts/alta.mjs <repo> catalogo`); la tarea de respaldo queda en la raíz y corre en esa subcarpeta.
 
 ---
 
 ## 7. Reglas hard del proyecto
 
-1. **Costo cero.** Solo GitHub Pages, GitHub Actions de repo público y Google Sheets. Ningún servicio pago sin decisión de Maxi.
+1. **Costo cero.** Solo GitHub Pages, GitHub Actions de repo público y Google Drive (Hojas de Google, Excel o CSV). Ningún servicio pago sin decisión de Maxi.
 2. **`core/` es idéntico en todos los repos.** Lo propio de cada cliente vive solo en `tienda.json`, `img/` y su planilla. Un cambio al núcleo se hace en la base y se propaga (UC-022); nunca se edita `core/` en un repo de cliente.
 3. **Lógica sin DOM en `core/datos.js`.** Todo lo que transforma datos (CSV, precios, búsqueda, mensaje) es función pura con test unitario.
-4. **Precios ocultos = precios ausentes** (BR-PRE-001): ni en el HTML, ni en el mensaje, ni en la pestaña publicada.
+4. **Precios ocultos = precios ausentes** (BR-PRE-001): ni en el HTML, ni en el mensaje, ni en `catalogo-respaldo.json`, ni en la pestaña publicada.
 5. **Ningún dato personal guardado.** El nombre del comprador solo viaja en el mensaje de WhatsApp: nunca en la URL de la web, en GA4 ni en `localStorage`.
 6. **Mobile first.** Todo se prueba a 375 px. Sin scripts externos salvo GA4 y Google Fonts.
 7. **Marca blanca de verdad.** El sitio de un cliente no muestra nada de Pueyrredón, PLED ni del proveedor del catálogo. No se usa el nombre "Mostrador".
@@ -253,7 +251,6 @@ QR de reseñas con beneficio y probador de luces quedan en el repo de Pueyrredó
 - **Lo publicado es público:** cualquier dato en la pestaña publicada se puede leer aunque la web no lo muestre (mitigado por BR-PRE-001). Con la planilla privada, quien tenga el link del archivo ve todo lo que tiene; por eso el link vive solo en el secreto del repo.
 - **Propagar el núcleo a muchos repos:** con 20+ clientes hace falta automatizar UC-022; hasta 5 clientes alcanza con un script manual.
 - **Límites de GitHub Pages:** 1 GB por sitio y ~100 GB de tráfico por mes. Sobra para catálogos con fotos livianas.
-- **Desvío actual:** hoy la barra de demo aparece por defecto (`demo` distinto de `0`), aunque el README dice `demo=1`. Se corrige con AC-020-1.
 
 ---
 
