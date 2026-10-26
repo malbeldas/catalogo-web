@@ -38,7 +38,7 @@ Catálogo web que se vende a comercios de cualquier rubro. Cada comercio tiene s
 
 El repo `malbeldas/catalogo-web` es el **producto base**. Contiene el núcleo del catálogo, la portada de venta y la demo que Maxi muestra desde el celular a posibles clientes (ejemplo mayorista, ejemplo minorista y un catálogo armado en el momento con fotos del cliente). Cada cliente real recibe **un repo propio creado a partir de la base**, publicado gratis en GitHub Pages. Un comercio que ya tiene sitio puede llevar el catálogo en una subcarpeta de su repo.
 
-Los extras de Distribuidora Pueyrredón (QR de reseñas con beneficio y probador de luces) **no forman parte de la base**: son diferenciales de Pueyrredón y viven solo en su repo.
+Los extras de Distribuidora Pueyrredón (QR de reseñas con beneficio y probador de luces) **no forman parte de la base**: son diferenciales de Pueyrredón y viven solo en su repo. La base sí ofrece a cada cliente un QR de reseñas de Google **sin** beneficio (UC-023).
 
 ---
 
@@ -53,6 +53,8 @@ Los extras de Distribuidora Pueyrredón (QR de reseñas con beneficio y probador
 | UC-020 | Vendedor (Maxi) | Muestra la demo: ejemplo mayorista, minorista y "Tu cliente" | `tienda.html?t=<id>&demo=1` |
 | UC-021 | Vendedor + Claude | Da de alta un cliente nuevo | Repo desde la base (o subcarpeta de su sitio) + su planilla o la plantilla, en menos de 1 hora |
 | UC-022 | Claude | Lleva una mejora del núcleo a todos los clientes | Sin pisar lo propio de cada cliente |
+| UC-023 | Vendedor + Claude | Arma el QR de reseñas de Google del comercio | Sin descuento ni filtro de estrellas (política de Google) |
+| UC-024 | Posible cliente | Ve la portada, el precio y consulta por WhatsApp | `index.html` de la base |
 
 ### Criterios de aceptación
 
@@ -91,6 +93,16 @@ Los extras de Distribuidora Pueyrredón (QR de reseñas con beneficio y probador
 **UC-022 — Actualizar el núcleo**
 - AC-022-1: la actualización reemplaza solo `core/` en el repo del cliente; `tienda.json`, `img/` y la planilla no se tocan.
 
+**UC-023 — QR de reseñas**
+- AC-023-1: el QR abre el formulario de reseña de Google del comercio, sin pasos intermedios, sin pedir estrellas antes y sin ofrecer nada a cambio.
+- AC-023-2: la tarjeta para imprimir lleva el logo, el color y el nombre del comercio, y nada de otra marca (regla hard 7).
+- AC-023-3: si el comercio tiene GA4, cada escaneo cuenta como `resena_qr`, sin datos de quien escanea (regla hard 5).
+
+**UC-024 — Portada de venta**
+- AC-024-1: la portada muestra qué incluye el servicio y el precio (alta y abono).
+- AC-024-2: un botón abre WhatsApp al número de ventas con un mensaje armado.
+- AC-024-3: la portada no nombra a Pueyrredón ni a PLED fuera de los ejemplos, ni usa "Mostrador" (regla hard 7).
+
 ---
 
 ## 3. Modelo de datos
@@ -104,6 +116,7 @@ No hay base de datos. Los datos viven en tres lugares:
 - `color`, `acento` (hex)
 - `planilla.privada: true` (por defecto): el catálogo sale del archivo del comercio, cuyo link va en el secreto `PLANILLA_URL` del repo, nunca en el código
 - `planilla.web`, `planilla.ajustes`: URLs CSV de las dos pestañas publicadas (`Web` y `Ajustes`), para clientes con la planilla publicada
+- `resenas` (opcional): link de reseña del Perfil de Empresa de Google del comercio (`https://g.page/r/…/review`). Con él, el alta genera `resena.html`, que es adonde apunta el QR (UC-023).
 - `ga4` (opcional, ID de medición). Cuenta visitas y `enviar_pedido` (cantidad de productos); nunca el nombre ni el mensaje (regla hard 5).
 
 **Planilla del comercio, pestaña `Productos` o primera hoja** (la edita el comercio; Hoja de Google, Excel o CSV)
@@ -241,6 +254,9 @@ Evaluado: Astro o Vite. Descartado en fase 1: el catálogo entra en menos de 1.0
 **Extras de Pueyrredón fuera de la base.**
 QR de reseñas con beneficio y probador de luces quedan en el repo de Pueyrredón. Decisión de Maxi (2026-10-25).
 
+**QR de reseñas sin beneficio para todos los clientes.**
+Evaluado: llevar el QR de Pueyrredón (con 5% OFF) a la base. Descartado: Google prohíbe ofrecer algo a cambio de reseñas y puede bajar o sacar reseñas del perfil del cliente. El QR de la base lleva directo al formulario de Google, sin descuento ni filtro de estrellas, y apunta a una página del sitio del cliente para que la tarjeta impresa siga sirviendo si cambia el link. Decisión de Maxi (2026-10-26).
+
 ---
 
 ## 9. Riesgos conocidos
@@ -282,7 +298,7 @@ QR de reseñas con beneficio y probador de luces quedan en el repo de Pueyrredó
 
 - Pagos online, carrito con checkout, stock o envíos calculados.
 - Cuentas de compradores o del comercio, y panel propio.
-- QR de reseñas con beneficio y probador de luces (diferenciales de Pueyrredón).
+- QR de reseñas con beneficio (descuento o regalo a cambio de la reseña) y probador de luces (diferenciales de Pueyrredón). El QR de reseñas sin beneficio sí entra (UC-023).
 - Varios idiomas o monedas.
 - Dominios pagos administrados por nosotros.
 
