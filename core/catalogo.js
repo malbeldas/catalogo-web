@@ -2,9 +2,10 @@
    Cada negocio es un JSON en tiendas/ (o "propia": la arma el vendedor en el momento, se guarda en este celular).
    Si el JSON trae planilla.web, los productos salen de la pestaña Web publicada como CSV (UC-010),
    y con planilla.ajustes el WhatsApp, el nombre, la bajada y los precios salen de la pestaña Ajustes (UC-011).
+   Si una pestaña no responde o no es válida, se usa esa parte de catalogo-respaldo.json (AC-010-4).
    tienda.html?t=<id>&demo=1 muestra la barra de demostración.
    La lógica pura (búsqueda, categorías, formatos) vive en datos.js. */
-import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV, ajustesDesdeCSV, aplicarAjustes } from './datos.js';
+import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV, ajustesDesdeCSV, aplicarAjustes, esPestana } from './datos.js';
 
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
@@ -27,19 +28,30 @@ async function load(id){
     const r=await fetch('tiendas/'+id+'.json');T=await r.json();
     // Las dos pestañas se piden a la vez para no demorar la primera pantalla.
     const pl=T.planilla||{},[web,ajustes]=await Promise.all([leerPestana(pl.web),leerPestana(pl.ajustes)]);
-    if(web!=null)T.productos=productosDesdeCSV(web);
-    T=aplicarAjustes(T,ajustes!=null?ajustesDesdeCSV(ajustes):{});
+    // El respaldo se pide solo si alguna pestaña falló, y una sola vez; el comprador no ve ningún aviso.
+    let respaldo;const deRespaldo=()=>respaldo??=leerRespaldo();
+    if(pl.web){
+      const prods=esPestana(web,'nombre')?productosDesdeCSV(web):[];
+      T.productos=prods.length?prods:(await deRespaldo())?.productos||[];
+      T.sinCatalogo=!T.productos.length;
+    }
+    const aj=esPestana(ajustes,'ajuste')?ajustesDesdeCSV(ajustes):pl.ajustes?(await deRespaldo())?.ajustes||{}:{};
+    T=aplicarAjustes(T,aj);
   }
   T.productos=T.productos||[];
   T.colorOrig=T.colorOrig||T.color;
   showPrices=!!T.precios;cart={};cat='Todo';
   theme(T.color);render();
 }
-// Sin caché del navegador: un cambio en la planilla se ve al recargar (AC-010-1). Si una pestaña no responde
-// da null y queda lo del JSON; el respaldo programado llega con STORY-003 (AC-010-4).
+// Sin caché del navegador: un cambio en la planilla se ve al recargar (AC-010-1). Si una pestaña no responde da null.
 async function leerPestana(url){
   if(!url)return null;
   try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(r.status);return await r.text()}
+  catch(e){return null}
+}
+// Última copia buena de la planilla, que guarda la tarea programada respaldo (SPEC.md §3); null si no hay.
+async function leerRespaldo(){
+  try{const r=await fetch('catalogo-respaldo.json',{cache:'no-store'});return r.ok?await r.json():null}
   catch(e){return null}
 }
 function lum(h){const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
@@ -53,6 +65,7 @@ function logoHTML(cls){
   const ini=(T.nombre||'Tu negocio').split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
   return `<span class="mono">${esc(ini)}</span>`;
 }
+const ICONO_WA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M9 9.5c.4 2 1.6 3.4 3.6 4.4"/></svg>';
 const sinWhatsApp=()=>!DEMO&&!linkWhatsApp(T.wa,'');
 function render(){
   document.title=(T.nombre||'Tu negocio')+' · Catálogo';
@@ -67,6 +80,15 @@ function render(){
 $('cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.c;render();window.scrollTo({top:$('tools').offsetTop-40,behavior:'smooth'})};
 $('q').oninput=()=>grid();
 function grid(){
+  // Sin planilla ni respaldo: en lugar de un buscador y una grilla vacíos, un mensaje y WhatsApp directo (SPEC.md §5).
+  $('tools').hidden=!!T.sinCatalogo;
+  if(T.sinCatalogo){
+    const url=linkWhatsApp(T.wa,'Hola, quiero hacer una consulta.');
+    $('grid').innerHTML='';$('mas').hidden=true;$('empty').hidden=false;
+    $('empty').innerHTML='<b>Estamos actualizando el catálogo</b><br>Escribinos y te pasamos lo que necesites.'+
+      (url?`<br><a class="b b-wa" id="waDirecto" href="${esc(url)}">${ICONO_WA}Escribir por WhatsApp</a>`:'');
+    return;
+  }
   lista=buscar(T.productos,$('q').value,cat==='Todo'?null:cat);mostrados=0;
   $('grid').innerHTML='';masProductos();
   const em=$('empty');em.hidden=!!lista.length;
