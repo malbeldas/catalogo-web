@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Catálogo web · Pedidos por WhatsApp</title>
 <meta name="description" content="Tu catálogo en el celular de tus clientes: tus productos con tu logo, precios visibles u ocultos y pedidos por WhatsApp.">
-<meta name="robots" content="noindex">
 <meta name="theme-color" content="#111418">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%23111418%22/%3E%3Cg fill=%22%23ffcc33%22%3E%3Crect x=%227%22 y=%227%22 width=%227.5%22 height=%227.5%22 rx=%222%22/%3E%3Crect x=%2217.5%22 y=%227%22 width=%227.5%22 height=%227.5%22 rx=%222%22/%3E%3Crect x=%227%22 y=%2217.5%22 width=%227.5%22 height=%227.5%22 rx=%222%22/%3E%3Crect x=%2217.5%22 y=%2217.5%22 width=%227.5%22 height=%227.5%22 rx=%222%22/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,6 +29,18 @@ body{background:#111418;color:#fff}
 .go a small{display:block;font-weight:500;color:#5b636e;font-size:13px;margin-top:2px}
 .go a.y{background:#ffcc33}
 .go a span:last-child{font-size:22px}
+.precio{margin:30px 0 0;padding:22px 18px;border-radius:20px;background:#1b1f25;border:1px solid #262b33}
+.precio h2{margin:0;font:800 24px/1.15 var(--display);letter-spacing:-.02em}
+.incluye{margin:16px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+.incluye li{display:flex;gap:10px;color:#d5dae0;font-size:15px;line-height:1.4}
+.incluye li::before{content:"";flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;background:#ffcc33 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111418' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12.5 4 4 8-9'/%3E%3C/svg%3E") center/12px no-repeat}
+.montos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0 0}
+.montos div{padding:14px;border-radius:14px;background:#111418;border:1px solid #262b33}
+.montos small{display:block;color:#a3abb5;font-size:13px;line-height:1.35}
+.montos b{display:block;margin:4px 0 2px;font:800 26px/1.1 var(--display);letter-spacing:-.02em}
+.oferta{margin:12px 0 0;padding:12px 14px;border-radius:14px;background:rgba(255,204,51,.12);color:#ffcc33;font-size:14px;font-weight:600;line-height:1.4}
+.wa{display:flex;align-items:center;justify-content:center;gap:10px;margin:18px 0 0;padding:16px 18px;border-radius:16px;background:#25d366;color:#0b2e17;font-weight:700;font-size:17px;text-decoration:none}
+.wa svg{width:22px;height:22px}
 .foot-lp{margin-top:26px;color:#7d8590;font-size:13px;text-align:center}
 </style>
 </head>
@@ -52,7 +63,36 @@ body{background:#111418;color:#fff}
     <a href="tienda.html?t=ropa&amp;demo=1"><span>Ejemplo de ropa por mayor<small>Talles y colores, precios a consultar</small></span><span>→</span></a>
     <a href="tienda.html?t=dietetica&amp;demo=1"><span>Ejemplo de dietética<small>Precios a la vista y ofertas</small></span><span>→</span></a>
   </div>
+  <section class="precio" id="precio" hidden>
+    <h2>Qué incluye y cuánto sale</h2>
+    <ul class="incluye" id="incluye"></ul>
+    <div class="montos">
+      <div><small>Alta</small><b id="alta"></b><small id="altaDetalle"></small></div>
+      <div><small>Abono</small><b id="abono"></b><small>por mes</small></div>
+    </div>
+    <p class="oferta" id="oferta" hidden></p>
+    <a class="wa" id="consultar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Consultar por WhatsApp</a>
+  </section>
   <p class="foot-lp">Funciona en cualquier celular, sin instalar nada.</p>
 </main>
+<script type="module">
+// Precio y contacto de ventas (UC-024): salen de portada.json, así se cambian sin tocar esta página.
+// Si no carga, la portada queda con los ejemplos y sin el bloque.
+import { esc, money, linkWhatsApp } from './core/datos.js';
+try {
+  const p = await (await fetch('portada.json', { cache: 'no-cache' })).json();
+  const link = linkWhatsApp(p.whatsapp, p.mensaje);
+  if (!link || !(p.alta?.precio > 0) || !(p.abono > 0)) throw new Error('portada.json incompleto');
+  document.getElementById('incluye').innerHTML = (p.incluye || []).map(t => `<li>${esc(t)}</li>`).join('');
+  document.getElementById('alta').textContent = money(p.alta.precio);
+  document.getElementById('altaDetalle').textContent = p.alta.productos ? `con hasta ${p.alta.productos} productos cargados` : 'una sola vez';
+  document.getElementById('abono').textContent = money(p.abono);
+  const oferta = document.getElementById('oferta');
+  oferta.textContent = p.oferta || '';
+  oferta.hidden = !p.oferta;
+  document.getElementById('consultar').href = link;
+  document.getElementById('precio').hidden = false;
+} catch {}
+</script>
 </body>
 </html>

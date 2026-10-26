@@ -1,0 +1,15 @@
+{
+  "whatsapp": "5491160132068",
+  "mensaje": "Hola! Vi la página del catálogo web y quiero consultar para mi negocio.",
+  "alta": { "precio": 39900, "productos": 50 },
+  "abono": 5900,
+  "oferta": "Lanzamiento: los primeros 5 comercios no pagan el alta.",
+  "incluye": [
+    "Tu catálogo con tu logo y tus colores, en un link propio para compartir",
+    "Pedidos por WhatsApp, con precios a la vista o a consultar",
+    "Cargamos tus productos con fotos y armamos tu planilla",
+    "Cambiás productos y precios desde tu Excel o tu planilla de Google",
+    "Si tu planilla falla, el catálogo sigue andando con la última copia",
+    "Tarjeta con QR para que tus clientes te dejen reseñas en Google"
+  ]
+}
