@@ -22,7 +22,7 @@ No hay glosario separado; los términos del dominio (comercio, comprador, planil
 - HTML, CSS y JavaScript en el navegador, sin framework ni paso de build (ES modules nativos).
 - Datos del comercio: su archivo en Google Drive (Hoja de Google, Excel o CSV), que la tarea respaldo lee con el link del secreto `PLANILLA_URL` y guarda en `catalogo-respaldo.json`. Los clientes anteriores publican las pestañas `Web` y `Ajustes` como CSV.
 - Hosting: GitHub Pages, un repo por cliente. Se publica lo que está en `main`.
-- Automatización: GitHub Actions (CI y respaldo programado del catálogo).
+- Automatización: GitHub Actions (CI y respaldo del catálogo); un Apps Script en la cuenta de Google del vendedor la dispara cada 15 minutos.
 - Medición: GA4 opcional por cliente.
 - Tests: `node:test` (unit) + Playwright con Chromium en emulación de celular (E2E).
 
@@ -90,7 +90,7 @@ Resumen:
 
 Citadas de `SPEC.md` §7:
 
-1. **Costo cero.** Solo GitHub Pages, GitHub Actions de repo público y Google Drive (Hojas de Google, Excel o CSV). Ningún servicio pago sin decisión de Maxi.
+1. **Costo cero.** Solo GitHub Pages, GitHub Actions de repo público, Google Drive (Hojas de Google, Excel o CSV) y Google Apps Script. Ningún servicio pago sin decisión de Maxi.
 2. **`core/` es idéntico en todos los repos.** Lo propio de cada cliente vive solo en `tienda.json`, `img/` y su planilla. Un cambio al núcleo se hace en la base y se propaga (UC-022); nunca se edita `core/` en un repo de cliente.
 3. **Lógica sin DOM en `core/datos.js`.** Todo lo que transforma datos (CSV, precios, búsqueda, mensaje) es función pura con test unitario.
 4. **Precios ocultos = precios ausentes** (BR-PRE-001): ni en el HTML, ni en el mensaje, ni en `catalogo-respaldo.json`, ni en la pestaña publicada.
