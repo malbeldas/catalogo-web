@@ -29,8 +29,9 @@ Pedile al comercio:
 | 6 | Subir y activar GitHub Pages | Claude o vendedor | 5 min |
 | 7 | Guardar el link y correr la tarea respaldo | Vendedor o Claude | 3 min |
 | 8 | Probarlo en el celular y mandar el link | Vendedor | 5 min |
+| 9 | Opcional: QR de reseñas de Google | Vendedor y Claude | 10 min |
 
-Total: unos 40 minutos.
+Total: unos 40 minutos, 50 con el QR.
 
 ### 1. Crear el repo (vendedor)
 
@@ -137,6 +138,29 @@ En el celular, abrí la URL:
 - Si los precios están ocultos, que no aparezca ninguno.
 
 Mandale al comercio el link de su web y el de su planilla. Anotá cuánto tardó el alta.
+
+### 9. QR de reseñas de Google (opcional, vendedor y Claude)
+
+Una tarjeta con el logo y el color del comercio y un QR que abre el formulario de reseña de Google (UC-023). Va incluida en el alta. Solo sirve si el comercio tiene Perfil de Empresa de Google; si no tiene, este paso se saltea.
+
+**Sin nada a cambio.** La tarjeta no ofrece descuentos, regalos ni sorteos, y no pregunta antes cuántas estrellas pondría: Google no permite pedir reseñas a cambio de algo ni pedírselas solo a los clientes contentos, y puede borrarlas o penalizar el perfil (AC-023-1). Decíselo al comercio: la tarjeta se entrega a todos los clientes por igual.
+
+1. **El link de reseña (vendedor o comercio).** Con la cuenta de Google que administra el perfil, buscá el nombre del negocio en Google o abrí [business.google.com](https://business.google.com). En el panel del perfil, tocá **Pedir reseñas** y copiá el link. Tiene esta forma: `https://g.page/r/<código>/review`. También sirve uno `https://search.google.com/local/writereview?placeid=<id>`.
+2. **`tienda.json` (Claude).** Agregá el campo `resenas` con ese link y volvé a correr `node scripts/alta.mjs ../catalogo`. Genera `resena.html`, la página a la que apunta el QR: manda directo a Google y, si el comercio tiene `ga4`, cuenta el escaneo como `resena_qr`, sin datos de quien escanea (AC-023-3). Como el QR apunta a esa página y no a Google, si cambia el link de reseña se corrige `tienda.json` y las tarjetas impresas siguen sirviendo.
+3. **Verificar y subir (Claude).** `node scripts/verificar-alta.mjs ../catalogo` revisa que `resenas` sea un link de reseña de Google y que esté `resena.html`. Después, commit y push como en el paso 6.
+4. **La tarjeta (Claude).** Desde el repo base, con `npm ci` hecho:
+
+   ```
+   node scripts/qr-resenas.mjs ../catalogo https://<cuenta>.github.io/catalogo/
+   ```
+
+   La URL es la de la web del comercio (paso 1, o la subcarpeta). Deja en `qr-resenas/`:
+   - `tarjeta.png`, una tarjeta sola, para mandar por WhatsApp o imprimir;
+   - `tarjetas-A4.pdf`, 4 tarjetas por hoja A4 con líneas de corte.
+
+   Las dos llevan solo el logo, el color y el nombre del comercio (AC-023-2).
+5. **Probar (vendedor).** Escaneá el QR del PNG con la cámara del celular: tiene que abrir el formulario de reseña del negocio en Google. Si la web recién se publicó, esperá a que GitHub Pages termine.
+6. **Entregar (vendedor).** Mandale al comercio el PNG y el PDF. Lo imprime en cualquier imprenta o en su casa, en papel grueso, y deja la tarjeta en la caja o la manda con cada pedido.
 
 ## Después del alta
 
