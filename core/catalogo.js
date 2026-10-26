@@ -9,7 +9,7 @@ import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedi
 
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
-const DEMO=Q.get('demo')!=='0';
+const DEMO=Q.get('demo')==='1'; // la demo se pide a propósito (AC-020-1); un comprador nunca la ve
 const EJEMPLOS=[['pueyrredon','Mayorista'],['pled','Minorista'],['propia','Tu cliente']];
 const SW=['#06518b','#111c2e','#0f766e','#b91c1c','#7c3aed','#c2410c','#1f2937','#be185d'];
 let T=null,cart={},cat='Todo',showPrices=false,lista=[],mostrados=0;
@@ -20,9 +20,17 @@ let tt;function toast(t){const el=$('toast');el.textContent=t;el.classList.add('
 /* ---------- Carga del negocio ---------- */
 const PROPIA_BASE={id:'propia',nombre:'',bajada:'',tipo:'Minorista',logo:'',color:'#0f766e',precios:true,
   productos:[]};
+// "Tu cliente" queda guardado solo en este celular (AC-020-2). Lo armado con la clave anterior se pasa una vez a la nueva.
+const PROPIA='catalogo_propia',PROPIA_ANTERIOR='mostrador_propia';
+function leerPropia(){
+  const s=ls.get(PROPIA,null);if(s)return s;
+  const v=ls.get(PROPIA_ANTERIOR,null);
+  if(v&&ls.set(PROPIA,v))try{localStorage.removeItem(PROPIA_ANTERIOR)}catch(e){}
+  return v;
+}
 async function load(id){
   if(id==='propia'){
-    const saved=ls.get('mostrador_propia',null);
+    const saved=leerPropia();
     T=Object.assign({},PROPIA_BASE,saved||{});
   }else{
     const r=await fetch('tiendas/'+id+'.json');T=await r.json();
@@ -189,7 +197,7 @@ $('fxOrder').onclick=()=>{close();if(location.hash){location.hash=''}
 $('fxEdit').onclick=()=>openEdit();
 
 /* ---------- Armar el negocio del cliente ---------- */
-function saveP(){const {colorOrig,...s}=T;if(!ls.set('mostrador_propia',s))toast('No hay más lugar en este celular: quitá algún producto')}
+function saveP(){const {colorOrig,...s}=T;if(!ls.set(PROPIA,s))toast('No hay más lugar en este celular: quitá algún producto')}
 function shrink(file,max){return new Promise((ok,ko)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');
   c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.8))};im.onerror=ko;im.src=u})}
 function openEdit(){$('eName').value=T.nombre||'';$('eSub').value=T.bajada||'';eProds();open('shEdit')}
@@ -207,6 +215,6 @@ $('eAdd').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)r
 $('eLogo').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{T.logo=await shrink(f,300);T.logoCuadrado=true;saveP();eProds();render()}catch(err){toast('No se pudo abrir esa foto')}};
 $('eName').oninput=()=>{T.nombre=$('eName').value;saveP()};$('eSub').oninput=()=>{T.bajada=$('eSub').value;saveP()};
 $('eDone').onclick=()=>{T.productos.forEach((p,i)=>{if(!p.n)p.n='Producto '+(i+1)});showPrices=T.productos.some(p=>p.p);T.precios=showPrices;saveP();close();render()};
-$('eReset').onclick=()=>{try{localStorage.removeItem('mostrador_propia')}catch(e){}T=Object.assign({},PROPIA_BASE,{colorOrig:PROPIA_BASE.color,productos:[]});theme(T.color);render();openEdit()};
+$('eReset').onclick=()=>{try{localStorage.removeItem(PROPIA)}catch(e){}T=Object.assign({},PROPIA_BASE,{colorOrig:PROPIA_BASE.color,productos:[]});theme(T.color);render();openEdit()};
 
 load(EJEMPLOS.some(([id])=>id===Q.get('t'))?Q.get('t'):'pueyrredon').then(()=>{if(DEMO&&T.id==='propia'&&!T.productos.length)openEdit()});
