@@ -1,0 +1,36 @@
+name: respaldo
+
+# Cada 6 horas baja la planilla del comercio y, si es válida y cambió, guarda catalogo-respaldo.json
+# en main para que GitHub Pages lo publique (SPEC.md §4). En el repo base no hay tienda.json y no hace nada.
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: respaldo
+  cancel-in-progress: false
+
+jobs:
+  respaldo:
+    name: Respaldo del catálogo
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      # Termina en rojo si la planilla no es válida: la copia anterior queda intacta y GitHub avisa por mail.
+      - run: node scripts/respaldo.mjs
+      - name: Guardar el respaldo si cambió
+        run: |
+          [ -f catalogo-respaldo.json ] || exit 0
+          git add catalogo-respaldo.json
+          if git diff --cached --quiet; then echo "Sin cambios para guardar."; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Respaldo del catálogo"
+          git push || { git pull -q --rebase && git push; }
