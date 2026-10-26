@@ -4,7 +4,8 @@
 import { esc } from './datos.js';
 
 const $=id=>document.getElementById(id);
-export const EJEMPLOS=[['pueyrredon','Mayorista'],['pled','Minorista'],['propia','Tu cliente']];
+// Ejemplos reales (Pueyrredón y PLED) y dos comercios inventados de otros rubros, para no parecer atados a uno solo.
+export const EJEMPLOS=[['pueyrredon','Mayorista'],['pled','Minorista'],['ropa','Ropa'],['dietetica','Dietética'],['propia','Tu cliente']];
 const SW=['#06518b','#111c2e','#0f766e','#b91c1c','#7c3aed','#c2410c','#1f2937','#be185d'];
 
 const BARRA=`<div class="demobar" id="demobar">
@@ -76,6 +77,8 @@ export function iniciarDemo(app){
   function alRenderizar(){
     const T=app.T;
     $('demoEx').innerHTML=EJEMPLOS.map(([id,l])=>`<button type="button" role="tab" aria-selected="${T.id===id}" data-t="${id}">${l}</button>`).join('');
+    // Con cinco ejemplos la barra no entra a 375 px: el elegido queda siempre a la vista.
+    $('demoEx').querySelector('[aria-selected="true"]')?.scrollIntoView({inline:'center',block:'nearest'});
     const has=T.productos.some(p=>p.p!=null&&p.p!=='');
     $('fxPrice').setAttribute('aria-checked',app.precios);$('fxPrice').disabled=!has&&T.id!=='propia';
     $('fxPriceHint').textContent=has||T.id==='propia'?'Cada negocio elige si los muestra':'Este ejemplo es mayorista: muestra el catálogo y el cliente consulta';
