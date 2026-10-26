@@ -1,5 +1,7 @@
 /* Catálogo web de marca blanca: productos, precios visibles u ocultos y pedidos por WhatsApp.
-   Cada negocio es un JSON en tiendas/.
+   En la base, cada ejemplo es un JSON en tiendas/ y se elige con t=<id>.
+   En el repo de un cliente, la página dice cuál es su JSON con <html data-tienda="tienda.json"> (UC-021):
+   la URL no puede cambiar de comercio ni abrir la demo.
    Si el JSON trae planilla.web, los productos salen de la pestaña Web publicada como CSV (UC-010),
    y con planilla.ajustes el WhatsApp, el nombre, la bajada y los precios salen de la pestaña Ajustes (UC-011).
    Si una pestaña no responde o no es válida, se usa esa parte de catalogo-respaldo.json (AC-010-4).
@@ -9,7 +11,8 @@ import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedi
 
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
-const DEMO=Q.get('demo')==='1'; // la demo se pide a propósito (AC-020-1); un comprador nunca la ve
+const CLIENTE=document.documentElement.dataset.tienda||''; // repo de un cliente: un solo comercio
+const DEMO=!CLIENTE&&Q.get('demo')==='1'; // la demo se pide a propósito (AC-020-1); un comprador nunca la ve
 const TIENDAS=['pueyrredon','pled'];
 let T=null,cart={},cat='Todo',showPrices=false,lista=[],mostrados=0;
 
@@ -22,7 +25,7 @@ async function load(id){
   if(id==='propia'&&demo){
     T=demo.tiendaPropia();
   }else{
-    const r=await fetch('tiendas/'+id+'.json');T=await r.json();
+    const r=await fetch(CLIENTE||'tiendas/'+id+'.json');T=await r.json();
     // Las dos pestañas se piden a la vez para no demorar la primera pantalla.
     const pl=T.planilla||{},[web,ajustes]=await Promise.all([leerPestana(pl.web),leerPestana(pl.ajustes)]);
     // El respaldo se pide solo si alguna pestaña falló, y una sola vez; el comprador no ve ningún aviso.
