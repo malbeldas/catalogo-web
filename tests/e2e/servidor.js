@@ -8,8 +8,9 @@ const tipos = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 
 createServer(async (req, res) => {
   try {
-    const ruta = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
-    const cuerpo = await readFile(join(raiz, ruta.endsWith('/') ? ruta + 'index.html' : ruta));
+    let ruta = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
+    if (ruta.endsWith('/')) ruta += 'index.html';
+    const cuerpo = await readFile(join(raiz, ruta));
     res.writeHead(200, { 'content-type': tipos[extname(ruta)] || 'application/octet-stream' }).end(cuerpo);
   } catch {
     res.writeHead(404).end('no encontrado');
