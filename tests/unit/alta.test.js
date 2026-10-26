@@ -58,6 +58,7 @@ test('UC-021 index.html del cliente: fijo en tienda.json, indexable, con su nomb
   assert.doesNotMatch(p, /noindex|data-ejemplos|data:image/);
   assert.match(p, /<title>Kiosco &lt;Ana&gt;<\/title>\n<meta name="description" content="Golosinas">/);
   assert.match(p, /<link rel="icon" href="img\/logo.png">/);
+  assert.match(paginaCliente(base, { logo: 'img/logo.png', icono: 'img/icono.png' }), /<link rel="icon" href="img\/icono.png">/);
 });
 
 test('AC-021-1 un alta completa pasa la verificación', async () => {

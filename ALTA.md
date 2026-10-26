@@ -87,6 +87,7 @@ En la carpeta del cliente:
 | `tipo` | `Mayorista`, `Minorista` o un texto corto |
 | `logo` | `img/<archivo>` |
 | `logoCuadrado` | `true` si el logo es cuadrado; `false` si es apaisado |
+| `icono` | Opcional: imagen cuadrada para la pestaña del navegador, si el logo es apaisado |
 | `color` | Hex, por ejemplo `#1f2937` |
 | `wa` | El WhatsApp con 54 y sin +: `5491122223333`. Se usa si Ajustes no tiene uno o la planilla no responde |
 | `precios` | `true` o `false`. Se usa si Ajustes no lo dice |

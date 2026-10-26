@@ -16,14 +16,14 @@ const WORKFLOW = '.github/workflows/respaldo.yml';
 const existe = ruta => access(ruta).then(() => true, () => false);
 
 // index.html del cliente: el mismo catálogo de tienda.html, fijo en su tienda.json y sin nada de la base:
-// se puede indexar, el título es su nombre y el ícono su logo (regla hard 7).
+// se puede indexar, el título es su nombre y el ícono su logo, o tienda.icono si el logo es apaisado (regla hard 7).
 export function paginaCliente(html, tienda = {}) {
   const nombre = esc(tienda.nombre || 'Catálogo');
   let p = html
     .replace(/<html[^>]*>/, '<html lang="es-AR" data-tienda="tienda.json">')
     .replace(/<meta name="robots"[^>]*>\n?/, '')
     .replace(/<title>[^<]*<\/title>/, `<title>${nombre}</title>`)
-    .replace(/<link rel="icon"[^>]*>/, tienda.logo ? `<link rel="icon" href="${esc(tienda.logo)}">` : '');
+    .replace(/<link rel="icon"[^>]*>/, tienda.icono || tienda.logo ? `<link rel="icon" href="${esc(tienda.icono || tienda.logo)}">` : '');
   if (tienda.bajada) p = p.replace(/(<title>[^<]*<\/title>)/, `$1\n<meta name="description" content="${esc(tienda.bajada)}">`);
   return p;
 }
