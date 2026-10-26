@@ -6,6 +6,10 @@ on:
   schedule:
     - cron: '23 */6 * * *'
   workflow_dispatch:
+  # Solo para la prueba manual de #44; esta rama no se mergea.
+  push:
+    branches: [prueba-respaldo-44]
+    paths: [prueba/**, tienda.json]
 
 permissions:
   contents: write
