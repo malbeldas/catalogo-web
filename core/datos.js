@@ -1,5 +1,5 @@
 /* Lógica pura del catálogo: sin document, window ni localStorage (SPEC.md §6, regla hard 3).
-   Todo lo de acá tiene test unitario en tests/unit/ (datos, pedido, planilla y ajustes). */
+   Todo lo de acá tiene test unitario en tests/unit/ (datos, pedido, planilla, ajustes y respaldo). */
 
 // Minúsculas y sin acentos, para comparar textos como los escribe la gente ("lampara" = "Lámpara").
 export const sinAcentos = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
@@ -170,3 +170,27 @@ export function aplicarAjustes(tienda, ajustes = {}) {
   if (!t.precios) t.productos = (t.productos || []).map(p => ({ ...p, p: null, antes: null }));
   return t;
 }
+
+/* ---------- Respaldo del catálogo (AC-010-4, SPEC.md §3) ---------- */
+
+// ¿Es de verdad el CSV de esa pestaña? Una planilla despublicada devuelve una página HTML de Google
+// en lugar del CSV, y una pestaña equivocada no trae la columna esperada.
+export function esPestana(texto, columna) {
+  const s = String(texto ?? '').replace(/^﻿/, '').trimStart();
+  if (!s || s.startsWith('<')) return false;
+  const [titulos = []] = leerCSV(s.split(/\r?\n/, 1)[0]);
+  return titulos.some(t => sinAcentos(t).trim() === columna);
+}
+
+// Copia del catálogo lista para guardar, o null si la planilla no sirve (y entonces no pisa la copia anterior).
+// Con precios ocultos los importes no se guardan: el respaldo también se publica (regla hard 4).
+export function armarRespaldo(csvWeb, ajustes = {}, tienda = {}) {
+  if (!esPestana(csvWeb, 'nombre')) return null;
+  const productos = productosDesdeCSV(csvWeb);
+  if (!productos.length) return null;
+  return { productos: aplicarAjustes({ ...tienda, productos }, ajustes).productos, ajustes };
+}
+
+// Igual contenido, sin mirar la fecha: si nada cambió no se escribe el archivo (y no hay commit).
+export const mismoRespaldo = (a, b) => !!a && !!b &&
+  JSON.stringify({ p: a.productos, a: a.ajustes }) === JSON.stringify({ p: b.productos, a: b.ajustes });
