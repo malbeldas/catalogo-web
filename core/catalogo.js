@@ -1,9 +1,10 @@
 /* Catálogo web de marca blanca: productos, precios visibles u ocultos y pedidos por WhatsApp.
    Cada negocio es un JSON en tiendas/ (o "propia": la arma el vendedor en el momento, se guarda en este celular).
-   Si el JSON trae planilla.web, los productos salen de la pestaña Web publicada como CSV (UC-010).
+   Si el JSON trae planilla.web, los productos salen de la pestaña Web publicada como CSV (UC-010),
+   y con planilla.ajustes el WhatsApp, el nombre, la bajada y los precios salen de la pestaña Ajustes (UC-011).
    tienda.html?t=<id>&demo=1 muestra la barra de demostración.
    La lógica pura (búsqueda, categorías, formatos) vive en datos.js. */
-import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV } from './datos.js';
+import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV, ajustesDesdeCSV, aplicarAjustes } from './datos.js';
 
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
@@ -24,18 +25,22 @@ async function load(id){
     T=Object.assign({},PROPIA_BASE,saved||{});
   }else{
     const r=await fetch('tiendas/'+id+'.json');T=await r.json();
-    if(T.planilla&&T.planilla.web)T.productos=await productosDePlanilla(T.planilla.web,T.productos);
+    // Las dos pestañas se piden a la vez para no demorar la primera pantalla.
+    const pl=T.planilla||{},[web,ajustes]=await Promise.all([leerPestana(pl.web),leerPestana(pl.ajustes)]);
+    if(web!=null)T.productos=productosDesdeCSV(web);
+    T=aplicarAjustes(T,ajustes!=null?ajustesDesdeCSV(ajustes):{});
   }
   T.productos=T.productos||[];
   T.colorOrig=T.colorOrig||T.color;
   showPrices=!!T.precios;cart={};cat='Todo';
   theme(T.color);render();
 }
-// Sin caché del navegador: un cambio en la planilla se ve al recargar (AC-010-1). Si la planilla no responde,
-// quedan los productos del JSON; el respaldo programado llega con STORY-003 (AC-010-4).
-async function productosDePlanilla(url,siFalla){
-  try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(r.status);return productosDesdeCSV(await r.text())}
-  catch(e){return siFalla}
+// Sin caché del navegador: un cambio en la planilla se ve al recargar (AC-010-1). Si una pestaña no responde
+// da null y queda lo del JSON; el respaldo programado llega con STORY-003 (AC-010-4).
+async function leerPestana(url){
+  if(!url)return null;
+  try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(r.status);return await r.text()}
+  catch(e){return null}
 }
 function lum(h){const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
 function theme(c){const r=document.documentElement.style;r.setProperty('--brand',c);r.setProperty('--on-brand',lum(c)>.45?'#111':'#fff');
