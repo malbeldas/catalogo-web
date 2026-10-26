@@ -15,7 +15,7 @@ Pedile al comercio:
 - Color de la marca. Si no tiene, sale del logo.
 - WhatsApp donde quiere recibir los pedidos.
 - Si muestra precios o los deja a consultar.
-- La lista de productos, con fotos. El alta incluye hasta 50 productos cargados por nosotros.
+- La lista de productos, con fotos, en el archivo que ya use: una Hoja de Google, un Excel o un CSV. Si no tiene, se arma con la plantilla. El alta incluye hasta 50 productos cargados por nosotros.
 
 ## Pasos
 
@@ -23,14 +23,14 @@ Pedile al comercio:
 |---|---|---|---|
 | 1 | Crear el repo | Vendedor | 2 min |
 | 2 | Armar la carpeta con `alta.mjs` | Claude | 1 min |
-| 3 | Planilla desde la plantilla y publicada | Vendedor y Claude | 25 min |
+| 3 | Planilla en Drive, compartida con el enlace | Vendedor y Claude | 20 min |
 | 4 | Completar `tienda.json` y el logo | Claude | 5 min |
 | 5 | Verificar | Claude | 1 min |
 | 6 | Subir y activar GitHub Pages | Claude o vendedor | 5 min |
-| 7 | Correr el respaldo una vez | Claude | 2 min |
+| 7 | Guardar el link y correr la tarea respaldo | Vendedor o Claude | 3 min |
 | 8 | Probarlo en el celular y mandar el link | Vendedor | 5 min |
 
-Total: unos 45 minutos.
+Total: unos 40 minutos.
 
 ### 1. Crear el repo (vendedor)
 
@@ -64,15 +64,13 @@ La web queda en `<url del sitio>/catalogo/`, y la tarea de respaldo queda en la 
 
 ### 3. Planilla (vendedor y Claude)
 
-Seguí `plantilla/README.md`:
-1. Subí `plantilla/planilla-comercio.xlsx` a Drive y guardala como Hoja de cálculo de Google. Claude puede hacerlo con el conector de Drive.
-2. Cargá los productos en la pestaña `Productos`, una fila por producto. Las fotos van como links de Drive compartidos como "Cualquier persona con el enlace".
-3. En `Ajustes`, completá WhatsApp y Precios (SÍ o NO).
-4. **Archivo > Compartir > Publicar en la Web** (vendedor; no se puede hacer sin la pantalla de Google):
-   - Solo `Web` y `Ajustes`, en formato CSV.
-   - **Nunca** `Productos` ni "Todo el documento": ahí están los precios aunque estén ocultos (BR-PRE-001).
-   - Copiá los dos links.
-5. Compartí la planilla con el comercio como editor.
+La planilla es el archivo del comercio tal como lo tenga, en su Google Drive. No se publica nada (AC-010-5).
+
+1. Si el comercio ya tiene su lista en una Hoja de Google, un Excel o un CSV, se usa esa. Si no tiene, subí `plantilla/planilla-comercio.xlsx` a su Drive. Claude puede subirla con el conector de Drive.
+2. Los productos, una fila por producto, en una pestaña `Productos` o en la primera hoja. Solo hace falta la columna `Nombre`, y se reconocen también `Producto`, `Artículo`, `Rubro`, `Imagen` y `SKU`. Puede haber un título arriba de los títulos de las columnas. Las fotos van como links de Drive compartidos como "Cualquier persona con el enlace".
+3. Si tiene una pestaña `Ajustes` (la plantilla la trae), completá WhatsApp y Precios (SÍ o NO). Si no la tiene, valen los de `tienda.json`.
+4. **Compartir > Cualquier persona con el enlace > Lector** y copiá el link. Ese link no va en el repo, va en un secreto (paso 7): el archivo puede tener los precios aunque la web los oculte (BR-PRE-001).
+5. Compartí el archivo con el comercio como editor, si no es suyo.
 
 ### 4. `tienda.json` y logo (Claude)
 
@@ -91,7 +89,7 @@ En la carpeta del cliente:
 | `color` | Hex, por ejemplo `#1f2937` |
 | `wa` | El WhatsApp con 54 y sin +: `5491122223333`. Se usa si Ajustes no tiene uno o la planilla no responde |
 | `precios` | `true` o `false`. Se usa si Ajustes no lo dice |
-| `planilla.web`, `planilla.ajustes` | Los dos links del paso 3 |
+| `planilla` | `{"privada": true}`, como viene en el molde. El link va en el secreto `PLANILLA_URL` (paso 7) |
 | `ga4` | Opcional: el ID de medición de Google Analytics (`G-…`). Cuenta visitas y pedidos enviados, nunca el nombre del comprador |
 
 Después volvé a correr `node scripts/alta.mjs ../catalogo`. Así `index.html` toma el nombre, la bajada y el logo para el título y el ícono. No pisa lo que completaste.
@@ -102,9 +100,11 @@ Después volvé a correr `node scripts/alta.mjs ../catalogo`. Así `index.html` 
 node scripts/verificar-alta.mjs ../catalogo
 ```
 
+Con `PLANILLA_URL=<link del paso 3>` adelante, además baja el archivo y revisa que se pueda leer. Esto anda en las tareas de GitHub pero no desde una sesión de Claude, que no llega a Google.
+
 Tiene que decir **✓ El alta está lista para publicar**. Si no, lista qué corregir, por ejemplo:
 - un dato que falta;
-- una pestaña mal publicada;
+- falta `catalogo-respaldo.json`, porque la tarea respaldo todavía no corrió (paso 7);
 - precios a la vista con Precios = NO;
 - `core/` distinto al de la base;
 - algo de otra marca (regla hard 7).
@@ -118,11 +118,16 @@ git add -A && git commit -m "Alta del catálogo" && git push -u origin main
 
 En el repo, **Settings > Pages**: *Deploy from a branch*, `main`, carpeta `/ (root)`. A los pocos minutos la web está en la URL del paso 1.
 
-### 7. Correr el respaldo una vez (Claude)
+### 7. Guardar el link y correr la tarea respaldo (vendedor o Claude)
 
-**Actions > respaldo > Run workflow.** Tiene que terminar en verde y dejar `catalogo-respaldo.json` en `main`. Desde ahí corre solo cada 6 horas (AC-010-4).
+1. En el repo, **Settings > Secrets and variables > Actions > New repository secret**: nombre `PLANILLA_URL`, valor el link del paso 3. Claude lo puede hacer con `gh secret set PLANILLA_URL` si tiene permiso de administrador en el repo.
+2. **Actions > respaldo > Run workflow.** Tiene que terminar en verde y dejar `catalogo-respaldo.json` en `main`. Si termina en rojo, el archivo no está compartido con el enlace o no tiene la columna `Nombre`.
 
-GitHub pausa las tareas programadas de un repo sin actividad por 60 días. Si el comercio no cambia nada en ese tiempo, el respaldo deja de correr hasta que alguien lo reactive desde Actions. La web sigue andando con la planilla.
+Desde ahí la tarea corre sola cada 15 minutos: lee el archivo, saca los productos con Visible = NO y los precios si Precios = NO, y guarda la copia que muestra la web. Un cambio del comercio se ve en la web en unos 15 a 20 minutos. GitHub puede demorar las tareas programadas cuando tiene mucha carga.
+
+GitHub pausa las tareas programadas de un repo sin actividad por 60 días. Si pasa, se reactiva desde Actions; mientras tanto la web sigue mostrando la última copia.
+
+**Clientes con la planilla publicada:** un alta anterior puede seguir con `planilla.web` y `planilla.ajustes` (los links CSV de "Publicar en la Web") y sin el secreto. En ese modo la web lee la planilla directo y la tarea respaldo guarda la copia para cuando Google falla.
 
 ### 8. Probar y entregar (vendedor)
 
@@ -135,5 +140,6 @@ Mandale al comercio el link de su web y el de su planilla. Anotá cuánto tardó
 
 ## Después del alta
 
-- El comercio edita solo su planilla. Los cambios se ven en hasta 5 minutos (`SPEC.md` §9).
+- El comercio edita solo su archivo. Los cambios se ven en unos 15 a 20 minutos.
+- Si el comercio cambia de archivo, se cambia el secreto `PLANILLA_URL`. Si deja de compartirlo, la tarea respaldo queda en rojo, GitHub avisa por mail y la web sigue con la última copia.
 - Una mejora del núcleo se hace en la base y se lleva a cada cliente volviendo a correr `alta.mjs` sobre su repo (UC-022, STORY-008). Nunca se edita `core/` en el repo de un cliente.

@@ -72,7 +72,8 @@ export function linkWhatsApp(numero, mensaje) {
 
 // CSV de una pestaña publicada de Google Sheets: celdas entre comillas, comas y saltos de línea
 // dentro de una celda, comillas dobladas (""). Devuelve las filas como listas de textos.
-export function leerCSV(texto) {
+// El Excel en castellano guarda el CSV con punto y coma: se pasa como separador.
+export function leerCSV(texto, separador = ',') {
   const filas = [], s = String(texto ?? '').replace(/^﻿/, '');
   let fila = [], celda = '', comillas = false;
   for (let i = 0; i < s.length; i++) {
@@ -82,7 +83,7 @@ export function leerCSV(texto) {
       else if (s[i + 1] === '"') { celda += '"'; i++; }
       else comillas = false;
     } else if (c === '"') comillas = true;
-    else if (c === ',') { fila.push(celda); celda = ''; }
+    else if (c === separador) { fila.push(celda); celda = ''; }
     else if (c === '\n' || c === '\r') {
       if (c === '\r' && s[i + 1] === '\n') i++;
       fila.push(celda); filas.push(fila); fila = []; celda = '';
@@ -124,13 +125,15 @@ export function linkFoto(valor) {
 }
 
 // Columnas de la pestaña Web (SPEC.md §3), reconocidas sin importar mayúsculas, acentos ni espacios de más.
-const COLUMNAS = { codigo: 'id', nombre: 'n', categoria: 'cat', descripcion: 'd', precio: 'p', 'precio anterior': 'antes', foto: 'img', visible: 'visible' };
+// Suma los títulos más comunes de las listas que ya tienen los comercios, para que suban su archivo sin rearmarlo.
+const COLUMNAS = { codigo: 'id', sku: 'id', nombre: 'n', producto: 'n', articulo: 'n', categoria: 'cat', rubro: 'cat', descripcion: 'd', precio: 'p', 'precio anterior': 'antes', foto: 'img', imagen: 'img', visible: 'visible' };
+const columnaDe = titulo => COLUMNAS[sinAcentos(titulo).trim().replace(/\s+/g, ' ')];
 
 // Filas del CSV (la primera son los títulos) a productos del catálogo.
 // Se ignoran las filas sin nombre (AC-010-3) y las de Visible = NO (AC-010-2); de un código repetido gana la primera fila (SPEC.md §5).
 export function productosDesdeFilas(filas) {
   const [titulos = [], ...resto] = filas, col = {};
-  titulos.forEach((t, i) => { const k = COLUMNAS[sinAcentos(t).trim().replace(/\s+/g, ' ')]; if (k && !(k in col)) col[k] = i; });
+  titulos.forEach((t, i) => { const k = columnaDe(t); if (k && !(k in col)) col[k] = i; });
   const celda = (fila, k) => k in col ? String(fila[col[k]] ?? '').trim() : '';
   const productos = [], vistos = new Set();
   resto.forEach((fila, i) => {
@@ -182,14 +185,25 @@ export function esPestana(texto, columna) {
   return titulos.some(t => sinAcentos(t).trim() === columna);
 }
 
-// Copia del catálogo lista para guardar, o null si la planilla no sirve (y entonces no pisa la copia anterior).
+// Posición de la fila de títulos: la primera de las 10 primeras que tiene la columna Nombre, o -1.
+// La lista de un comercio puede traer arriba un título o la fecha antes de los títulos de las columnas.
+export function filaDeTitulos(filas) {
+  return (filas || []).slice(0, 10).findIndex(f => (f || []).some(t => columnaDe(t) === 'n'));
+}
+
+// Copia del catálogo lista para guardar desde las filas de la planilla o del archivo del comercio,
+// o null si no sirve (y entonces no pisa la copia anterior).
 // Con precios ocultos los importes no se guardan: el respaldo también se publica (regla hard 4).
-export function armarRespaldo(csvWeb, ajustes = {}, tienda = {}) {
-  if (!esPestana(csvWeb, 'nombre')) return null;
-  const productos = productosDesdeCSV(csvWeb);
+export function respaldoDesdeFilas(filas, ajustes = {}, tienda = {}) {
+  const i = filaDeTitulos(filas);
+  if (i < 0) return null;
+  const productos = productosDesdeFilas(filas.slice(i));
   if (!productos.length) return null;
   return { productos: aplicarAjustes({ ...tienda, productos }, ajustes).productos, ajustes };
 }
+
+export const armarRespaldo = (csvWeb, ajustes = {}, tienda = {}) =>
+  esPestana(csvWeb, 'nombre') ? respaldoDesdeFilas(leerCSV(csvWeb), ajustes, tienda) : null;
 
 // Igual contenido, sin mirar la fecha: si nada cambió no se escribe el archivo (y no hay commit).
 export const mismoRespaldo = (a, b) => !!a && !!b &&

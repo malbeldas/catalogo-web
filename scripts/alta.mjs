@@ -11,7 +11,7 @@ import { esc } from '../core/datos.js';
 
 const BASE = fileURLToPath(new URL('..', import.meta.url));
 // Lo que el cliente recibe de la base y se reemplaza en cada alta o actualización.
-export const DE_LA_BASE = ['scripts/respaldo.mjs'];
+export const DE_LA_BASE = ['scripts/respaldo.mjs', 'scripts/xlsx.mjs'];
 const WORKFLOW = '.github/workflows/respaldo.yml';
 const existe = ruta => access(ruta).then(() => true, () => false);
 

@@ -4,24 +4,26 @@
 
 ## Pestañas
 
-| Pestaña | Quién la edita | ¿Se publica? |
+| Pestaña | Quién la edita | Para qué |
 |---|---|---|
-| `Productos` | El comercio | **No.** Tiene los precios aunque estén ocultos. |
-| `Ajustes` | El comercio | Sí |
-| `Web` | Nadie: se arma sola con fórmulas | Sí |
-| `Ayuda` | Nadie | No |
+| `Productos` | El comercio | Los productos. La tarea respaldo lee esta pestaña. |
+| `Ajustes` | El comercio | WhatsApp, Precios, Nombre y Bajada |
+| `Web` | Nadie: se arma sola con fórmulas | Solo para clientes con la planilla publicada |
+| `Ayuda` | Nadie | Instrucciones para el comercio |
 
-`Web` copia de `Productos` solo las filas con nombre y con Visible distinto de NO. Copia Precio y Precio anterior solo si `Ajustes > Precios` es SÍ. Con NO, los importes no llegan a lo publicado (BR-PRE-001, `SPEC.md` §5).
+La plantilla es opcional: la tarea respaldo lee también la lista que el comercio ya tenga, en una Hoja de Google, un Excel o un CSV (AC-010-5).
 
 ## Pasos para el alta (los hace Claude o el vendedor, una sola vez)
 
-1. En el Google Drive del comercio: **Nuevo > Subir archivo** y elegir `planilla-comercio.xlsx`.
-2. Abrirla con **Hojas de cálculo de Google** y luego **Archivo > Guardar como Hojas de cálculo de Google**.
-3. **Archivo > Compartir > Publicar en la Web**:
-   - En **Contenido publicado y configuración**, dejar tildadas solo `Web` y `Ajustes`. **Nunca** `Productos` ni "Todo el documento".
-   - Arriba, elegir la pestaña `Web` y el formato **Valores separados por comas (.csv)**, tocar **Publicar** y copiar el link en `planilla.web` de `tienda.json`.
-   - Repetir con la pestaña `Ajustes` y copiar el link en `planilla.ajustes`.
-4. Compartir la planilla con el comercio como editor.
+1. En el Google Drive del comercio: **Nuevo > Subir archivo** y elegir `planilla-comercio.xlsx`. Puede quedar como Excel o guardarse como Hoja de Google; la tarea lee las dos.
+2. **Compartir > Cualquier persona con el enlace > Lector** y copiar el link en el secreto `PLANILLA_URL` del repo del cliente (`ALTA.md`, paso 7). No publicar nada en la Web.
+3. Compartir la planilla con el comercio como editor.
+
+La tarea respaldo saca los productos con Visible = NO y, con `Ajustes > Precios` = NO, los importes, antes de guardar la copia que publica la web (BR-PRE-001, `SPEC.md` §5).
+
+### Clientes con la planilla publicada
+
+Un alta anterior lee `Web` y `Ajustes` publicadas como CSV. `Web` copia de `Productos` solo las filas con nombre y con Visible distinto de NO, y copia Precio y Precio anterior solo si `Ajustes > Precios` es SÍ. Para publicarla: **Archivo > Compartir > Publicar en la Web**, solo `Web` y `Ajustes` como CSV, **nunca** `Productos` ni "Todo el documento".
 
 ## Para el comercio
 
@@ -31,7 +33,7 @@ Las instrucciones están en la pestaña `Ayuda`. En resumen:
 - Precio con o sin `$` y puntos.
 - Foto: un link de Drive compartido como "Cualquier persona con el enlace".
 - Visible = NO esconde un producto sin borrarlo.
-- Los cambios tardan hasta 5 minutos en verse (`SPEC.md` §9).
+- Los cambios tardan unos 15 a 20 minutos en verse.
 
 ## Volver a generarla
 

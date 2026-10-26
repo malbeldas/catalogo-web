@@ -5,6 +5,7 @@
    Si el JSON trae planilla.web, los productos salen de la pestaña Web publicada como CSV (UC-010),
    y con planilla.ajustes el WhatsApp, el nombre, la bajada y los precios salen de la pestaña Ajustes (UC-011).
    Si una pestaña no responde o no es válida, se usa esa parte de catalogo-respaldo.json (AC-010-4).
+   Con planilla.privada, el comercio no publica nada: la tarea respaldo lee su archivo y la web muestra catalogo-respaldo.json.
    Con demo=1 se carga además la demo (demo.js): ejemplos, Funciones y "Tu cliente".
    La lógica pura (búsqueda, categorías, formatos) vive en datos.js. */
 import { esc, money, sinAcentos, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV, ajustesDesdeCSV, aplicarAjustes, esPestana } from './datos.js';
@@ -30,13 +31,18 @@ async function load(id){
     const pl=T.planilla||{},[web,ajustes]=await Promise.all([leerPestana(pl.web),leerPestana(pl.ajustes)]);
     // El respaldo se pide solo si alguna pestaña falló, y una sola vez; el comprador no ve ningún aviso.
     let respaldo;const deRespaldo=()=>respaldo??=leerRespaldo();
-    if(pl.web){
-      const prods=esPestana(web,'nombre')?productosDesdeCSV(web):[];
-      T.productos=prods.length?prods:(await deRespaldo())?.productos||[];
-      T.sinCatalogo=!T.productos.length;
+    if(pl.privada){
+      const r=await deRespaldo();
+      T.productos=r?.productos||[];T.sinCatalogo=!T.productos.length;T=aplicarAjustes(T,r?.ajustes);
+    }else{
+      if(pl.web){
+        const prods=esPestana(web,'nombre')?productosDesdeCSV(web):[];
+        T.productos=prods.length?prods:(await deRespaldo())?.productos||[];
+        T.sinCatalogo=!T.productos.length;
+      }
+      const aj=esPestana(ajustes,'ajuste')?ajustesDesdeCSV(ajustes):pl.ajustes?(await deRespaldo())?.ajustes||{}:{};
+      T=aplicarAjustes(T,aj);
     }
-    const aj=esPestana(ajustes,'ajuste')?ajustesDesdeCSV(ajustes):pl.ajustes?(await deRespaldo())?.ajustes||{}:{};
-    T=aplicarAjustes(T,aj);
   }
   T.productos=T.productos||[];
   T.colorOrig=T.colorOrig||T.color;

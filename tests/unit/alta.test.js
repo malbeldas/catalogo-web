@@ -5,7 +5,7 @@ import { mkdtemp, readFile, readdir, writeFile, appendFile } from 'node:fs/promi
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { paginaCliente, armarAlta, workflowEnSubcarpeta } from '../../scripts/alta.mjs';
-import { revisarTienda, revisarPestanas, marcasAjenas, revisarNucleo, verificarAlta } from '../../scripts/verificar-alta.mjs';
+import { revisarTienda, revisarPestanas, revisarPrivada, marcasAjenas, revisarNucleo, verificarAlta } from '../../scripts/verificar-alta.mjs';
 
 const BASE = new URL('../../', import.meta.url).pathname;
 const URL_WEB = 'https://docs.google.com/spreadsheets/d/e/PRUEBA/pub?gid=0&single=true&output=csv';
@@ -34,6 +34,7 @@ test('AC-021-1 el alta copia core/ igual al de la base, sin demo.js ni nada de l
   assert.deepEqual(JSON.parse(await readFile(join(dir, 'package.json'), 'utf8')).type, 'module');
   await readFile(join(dir, '.github/workflows/respaldo.yml'));
   await readFile(join(dir, 'scripts/respaldo.mjs'));
+  await readFile(join(dir, 'scripts/xlsx.mjs'));
 });
 
 test('AC-021-1 volver a correr el alta no pisa tienda.json ni img/ del cliente', async () => {
@@ -47,7 +48,8 @@ test('AC-021-1 una carpeta nueva recibe un tienda.json para completar', async ()
   const dir = await mkdtemp(join(tmpdir(), 'alta-'));
   assert.deepEqual(await armarAlta(dir), { nuevo: true });
   const t = JSON.parse(await readFile(join(dir, 'tienda.json'), 'utf8'));
-  assert.deepEqual(Object.keys(t.planilla), ['web', 'ajustes']);
+  // Por defecto el comercio solo comparte su archivo (AC-010-5).
+  assert.deepEqual(t.planilla, { privada: true });
   assert.ok(revisarTienda(t).length > 0, 'el molde sin completar no pasa la verificación');
 });
 
@@ -120,4 +122,28 @@ test('UC-021 con subcarpeta el catálogo va dentro del sitio y la tarea de respa
   const yml = await readFile(join(repo, '.github/workflows/respaldo.yml'), 'utf8');
   assert.match(yml, /\n {4}defaults:\n {6}run:\n {8}working-directory: catalogo\n {4}steps:/);
   assert.equal(workflowEnSubcarpeta(yml.replace(/ {4}defaults:[\s\S]*?catalogo\n/, ''), ''), yml.replace(/ {4}defaults:[\s\S]*?catalogo\n/, ''));
+});
+
+test('AC-010-5 con planilla privada la verificación no pide links CSV pero sí la copia que arma la tarea respaldo', async () => {
+  const privada = { ...tienda, planilla: { privada: true } };
+  assert.deepEqual(revisarTienda(privada), []);
+  const dir = await mkdtemp(join(tmpdir(), 'alta-'));
+  await writeFile(join(dir, 'tienda.json'), JSON.stringify(privada));
+  await armarAlta(dir);
+  await writeFile(join(dir, 'img', 'logo.png'), 'png');
+  assert.deepEqual(await verificarAlta(dir), ['falta catalogo-respaldo.json: guardá el link en el secreto PLANILLA_URL y corré la tarea respaldo']);
+  await writeFile(join(dir, 'catalogo-respaldo.json'), JSON.stringify({ productos: [{ id: 'A1', n: 'Alfajor triple', p: 900 }], ajustes: {} }));
+  assert.deepEqual(await verificarAlta(dir), []);
+  // Con el link, también se baja y se lee el archivo del comercio.
+  const LINK = 'https://ejemplo.com/lista.csv';
+  const archivo = cuerpo => async () => ({ ok: true, arrayBuffer: async () => new TextEncoder().encode(cuerpo).buffer });
+  assert.deepEqual(await verificarAlta(dir, { link: LINK, fetch: archivo(WEB) }), []);
+  assert.match((await verificarAlta(dir, { link: LINK, fetch: archivo('<html>Solicitar acceso</html>') })).join(), /compartido con "cualquiera con el enlace"/);
+});
+
+test('BR-PRE-001 con planilla privada y Precios = NO la verificación falla si la copia publicada tiene importes', () => {
+  const t = { precios: true, planilla: { privada: true } };
+  assert.match(revisarPrivada(null, { productos: [{ n: 'A', p: 900 }], ajustes: { precios: false } }, t).join(), /BR-PRE-001/);
+  assert.match(revisarPrivada(null, { productos: [{ n: 'A', antes: 900 }], ajustes: {} }, { precios: false }).join(), /BR-PRE-001/);
+  assert.deepEqual(revisarPrivada(null, { productos: [{ n: 'A', p: null }], ajustes: { precios: false } }, t), []);
 });
