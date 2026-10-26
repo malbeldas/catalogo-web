@@ -1,2 +1,9 @@
-{ "id": "prueba", "nombre": "Comercio de prueba", "precios": true,
-  "planilla": { "web": "https://raw.githubusercontent.com/malbeldas/catalogo-web/prueba-respaldo-44/prueba/web.csv", "ajustes": "https://raw.githubusercontent.com/malbeldas/catalogo-web/prueba-respaldo-44/prueba/ajustes.csv" } }
+{
+ "id": "prueba",
+ "nombre": "Comercio de prueba",
+ "precios": true,
+ "planilla": {
+  "web": "https://malbeldas.github.io/catalogo-web/",
+  "ajustes": "https://raw.githubusercontent.com/malbeldas/catalogo-web/prueba-respaldo-44/prueba/ajustes.csv"
+ }
+}
