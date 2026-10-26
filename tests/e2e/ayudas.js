@@ -46,13 +46,19 @@ export const URL_PLANILLA = 'https://docs.google.com/spreadsheets/d/e/PRUEBA/pub
 export const TITULOS_PLANILLA = ['Código', 'Nombre', 'Categoría', 'Descripción', 'Precio', 'Precio anterior', 'Foto', 'Visible'];
 const celdaCSV = v => /[",\n]/.test(String(v ?? '')) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? '');
 export const aCSV = filas => [TITULOS_PLANILLA, ...filas].map(f => f.map(celdaCSV).join(',')).join('\r\n');
-export async function abrirPlanilla(page, filas, tienda) {
-  const planilla = { csv: aCSV(filas), lecturas: 0 };
-  const datos = await simularCatalogo(page, { productos: undefined, planilla: { web: URL_PLANILLA }, ...tienda });
-  // Registrada después del corte de llamadas externas, así que esta URL se atiende acá.
+// Con ajustes ([['Precios', 'NO'], ...]) también se publica la pestaña Ajustes; planilla.ajustesCSV se puede cambiar
+// entre recargas, y con planilla.ajustesCaida = true esa pestaña responde con error.
+export const URL_AJUSTES = URL_PLANILLA.replace('gid=0', 'gid=1');
+export const ajustesCSV = filas => [['Ajuste', 'Valor', 'Para qué sirve'], ...filas].map(f => f.map(celdaCSV).join(',')).join('\r\n');
+export async function abrirPlanilla(page, filas, tienda, ajustes) {
+  const planilla = { csv: aCSV(filas), lecturas: 0, ajustesCSV: ajustes && ajustesCSV(ajustes), ajustesCaida: false };
+  const urls = { web: URL_PLANILLA, ...(ajustes && { ajustes: URL_AJUSTES }) };
+  const datos = await simularCatalogo(page, { productos: undefined, planilla: urls, ...tienda });
+  // Registradas después del corte de llamadas externas, así que estas URLs se atienden acá.
   await page.route(URL_PLANILLA, r => { planilla.lecturas++; return r.fulfill({ body: planilla.csv, contentType: 'text/csv' }); });
+  await page.route(URL_AJUSTES, r => planilla.ajustesCaida ? r.fulfill({ status: 500 }) : r.fulfill({ body: planilla.ajustesCSV, contentType: 'text/csv' }));
   await page.goto('/tienda.html?t=pled&demo=0');
-  await expect(page.locator('#stName')).toHaveText(datos.nombre);
+  await expect(page.locator('#grid .pc, #empty').first()).toBeVisible();
   return planilla;
 }
 
