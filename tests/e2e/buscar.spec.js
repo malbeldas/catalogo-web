@@ -109,3 +109,10 @@ test('UC-001 con cat=<categoría> en la URL el catálogo abre en esa categoría,
   await expect(page.locator('#cats button.on')).toHaveText('Todo');
   await expect(page.locator('#grid .pc')).toHaveCount(4);
 });
+
+test('UC-001 con q=<búsqueda> en la URL el catálogo abre con esa búsqueda hecha', async ({ page }) => {
+  await simularCatalogo(page, { productos: ejemplo });
+  await page.goto('/tienda.html?t=pled&q=guirnalda');
+  await expect(page.locator('#q')).toHaveValue('guirnalda');
+  await expect(page.locator('#grid .pc h3')).toHaveText(['Guirnalda 5 m', 'Guirnalda 10 m']);
+});

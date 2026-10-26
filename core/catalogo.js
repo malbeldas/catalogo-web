@@ -40,11 +40,11 @@ async function load(id){
   }
   T.productos=T.productos||[];
   T.colorOrig=T.colorOrig||T.color;
-  showPrices=!!T.precios;cart={};cat=categoriaPedida();
+  showPrices=!!T.precios;cart={};cat=categoriaPedida();$('q').value=Q.get('q')||'';
   theme(T.color);render();
   if(!DEMO)medir(T.ga4);
 }
-// Con cat=<categoría> en la URL el catálogo abre filtrado, para enlazar un rubro desde otra página (UC-001).
+// Con cat=<categoría> o q=<búsqueda> en la URL el catálogo abre filtrado, para enlazar un rubro o un producto desde otra página (UC-001).
 function categoriaPedida(){
   const q=sinAcentos(Q.get('cat')||'').trim();
   return categorias(T.productos).find(c=>sinAcentos(c).trim()===q)||'Todo';

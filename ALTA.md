@@ -60,7 +60,7 @@ Si el comercio ya tiene un sitio en ese repo, el catálogo va en una subcarpeta 
 node scripts/alta.mjs ../sitio-del-comercio catalogo
 ```
 
-La web queda en `<url del sitio>/catalogo/`, y la tarea de respaldo queda en la raíz del repo y corre dentro de `catalogo/`. Desde otras páginas del sitio se puede enlazar una categoría con `catalogo/?cat=<categoría>`. En los pasos siguientes, "la carpeta del cliente" es esa subcarpeta.
+La web queda en `<url del sitio>/catalogo/`, y la tarea de respaldo queda en la raíz del repo y corre dentro de `catalogo/`. Desde otras páginas del sitio se puede enlazar una categoría con `catalogo/?cat=<categoría>` o una búsqueda con `catalogo/?q=<texto>`. En los pasos siguientes, "la carpeta del cliente" es esa subcarpeta.
 
 ### 3. Planilla (vendedor y Claude)
 
