@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, readdir, writeFile, appendFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { paginaCliente, armarAlta } from '../../scripts/alta.mjs';
+import { paginaCliente, armarAlta, workflowEnSubcarpeta } from '../../scripts/alta.mjs';
 import { revisarTienda, revisarPestanas, marcasAjenas, revisarNucleo, verificarAlta } from '../../scripts/verificar-alta.mjs';
 
 const BASE = new URL('../../', import.meta.url).pathname;
@@ -108,4 +108,15 @@ test('regla hard 7: la verificación encuentra Pueyrredón, PLED y Mostrador, sa
   const dir = await altaCompleta();
   await writeFile(join(dir, 'tienda.json'), JSON.stringify({ ...tienda, bajada: 'Revendedor de Pueyrredón' }));
   assert.deepEqual(await verificarAlta(dir, { fetch: planilla(WEB, AJUSTES()) }), ['tienda.json menciona "Pueyrredón" (regla hard 7)']);
+});
+
+test('UC-021 con subcarpeta el catálogo va dentro del sitio y la tarea de respaldo queda en la raíz del repo', async () => {
+  const repo = await mkdtemp(join(tmpdir(), 'alta-sub-'));
+  await writeFile(join(repo, 'index.html'), 'sitio propio');
+  await armarAlta(repo, { sub: 'catalogo' });
+  assert.equal(await readFile(join(repo, 'index.html'), 'utf8'), 'sitio propio', 'no pisa el inicio del sitio');
+  for (const f of ['index.html', 'tienda.json', 'package.json', 'scripts/respaldo.mjs', 'core/catalogo.js']) await readFile(join(repo, 'catalogo', f));
+  const yml = await readFile(join(repo, '.github/workflows/respaldo.yml'), 'utf8');
+  assert.match(yml, /\n {4}defaults:\n {6}run:\n {8}working-directory: catalogo\n {4}steps:/);
+  assert.equal(workflowEnSubcarpeta(yml.replace(/ {4}defaults:[\s\S]*?catalogo\n/, ''), ''), yml.replace(/ {4}defaults:[\s\S]*?catalogo\n/, ''));
 });

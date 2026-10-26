@@ -7,7 +7,7 @@
    Si una pestaña no responde o no es válida, se usa esa parte de catalogo-respaldo.json (AC-010-4).
    Con demo=1 se carga además la demo (demo.js): ejemplos, Funciones y "Tu cliente".
    La lógica pura (búsqueda, categorías, formatos) vive en datos.js. */
-import { esc, money, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV, ajustesDesdeCSV, aplicarAjustes, esPestana } from './datos.js';
+import { esc, money, sinAcentos, categorias, mostrarBarraCategorias, buscar, lote, totalPedido, mensajePedido, linkWhatsApp, productosDesdeCSV, ajustesDesdeCSV, aplicarAjustes, esPestana } from './datos.js';
 
 const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
@@ -40,8 +40,22 @@ async function load(id){
   }
   T.productos=T.productos||[];
   T.colorOrig=T.colorOrig||T.color;
-  showPrices=!!T.precios;cart={};cat='Todo';
+  showPrices=!!T.precios;cart={};cat=categoriaPedida();
   theme(T.color);render();
+  if(!DEMO)medir(T.ga4);
+}
+// Con cat=<categoría> en la URL el catálogo abre filtrado, para enlazar un rubro desde otra página (UC-001).
+function categoriaPedida(){
+  const q=sinAcentos(Q.get('cat')||'').trim();
+  return categorias(T.productos).find(c=>sinAcentos(c).trim()===q)||'Todo';
+}
+// GA4 opcional por cliente (SPEC.md §3, regla hard 6). Solo se cuentan visitas y pedidos enviados: nunca el nombre ni el mensaje (regla hard 5).
+let gtag=()=>{};
+function medir(id){
+  if(!/^G-[A-Z0-9]+$/.test(id||''))return;
+  window.dataLayer=window.dataLayer||[];gtag=function(){dataLayer.push(arguments)};
+  gtag('js',new Date());gtag('config',id);
+  const s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+id;document.head.append(s);
 }
 // Sin caché del navegador: un cambio en la planilla se ve al recargar (AC-010-1). Si una pestaña no responde da null.
 async function leerPestana(url){
@@ -152,7 +166,7 @@ $('sendOrder').onclick=()=>sendWA(orderMsg());
 function sendWA(msg){
   const url=linkWhatsApp(T.wa,msg);
   if(demo){demo.chat(msg);return}
-  if(url)location.href=url;
+  if(url){gtag('event','enviar_pedido',{productos:cartItems().length});location.href=url}
 }
 
 /* ---------- Hojas ---------- */

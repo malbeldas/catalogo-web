@@ -1,5 +1,5 @@
 // UC-001 — Navegar y buscar (SPEC.md §2).
-import { test, expect, abrirCatalogo, generarProductos, emularCelular4G } from './ayudas.js';
+import { test, expect, abrirCatalogo, simularCatalogo, generarProductos, emularCelular4G } from './ayudas.js';
 
 const ancho = page => page.evaluate(() => document.documentElement.scrollWidth);
 
@@ -98,4 +98,14 @@ test.describe('AC-001-4 pantalla de celular', () => {
     await expect(page.locator('#shCart')).toBeVisible();
     expect(await ancho(page)).toBeLessThanOrEqual(375);
   });
+});
+
+test('UC-001 con cat=<categoría> en la URL el catálogo abre en esa categoría, sin importar mayúsculas ni acentos', async ({ page }) => {
+  await simularCatalogo(page, { productos: ejemplo });
+  await page.goto('/tienda.html?t=pled&cat=lamparas');
+  await expect(page.locator('#cats button.on')).toHaveText('Lámparas');
+  await expect(page.locator('#grid .pc h3')).toHaveText(['Lámpara vintage G125']);
+  await page.goto('/tienda.html?t=pled&cat=no-existe');
+  await expect(page.locator('#cats button.on')).toHaveText('Todo');
+  await expect(page.locator('#grid .pc')).toHaveCount(4);
 });

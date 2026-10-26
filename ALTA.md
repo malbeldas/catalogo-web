@@ -54,6 +54,14 @@ node scripts/alta.mjs ../catalogo
 
 Copia `core/` sin la demo, la tarea de respaldo y un `tienda.json` para completar, y genera `index.html`. No copia nada de la portada, de la demo ni de los ejemplos.
 
+Si el comercio ya tiene un sitio en ese repo, el catálogo va en una subcarpeta y no pisa nada:
+
+```
+node scripts/alta.mjs ../sitio-del-comercio catalogo
+```
+
+La web queda en `<url del sitio>/catalogo/`, y la tarea de respaldo queda en la raíz del repo y corre dentro de `catalogo/`. Desde otras páginas del sitio se puede enlazar una categoría con `catalogo/?cat=<categoría>`. En los pasos siguientes, "la carpeta del cliente" es esa subcarpeta.
+
 ### 3. Planilla (vendedor y Claude)
 
 Seguí `plantilla/README.md`:
@@ -83,6 +91,7 @@ En la carpeta del cliente:
 | `wa` | El WhatsApp con 54 y sin +: `5491122223333`. Se usa si Ajustes no tiene uno o la planilla no responde |
 | `precios` | `true` o `false`. Se usa si Ajustes no lo dice |
 | `planilla.web`, `planilla.ajustes` | Los dos links del paso 3 |
+| `ga4` | Opcional: el ID de medición de Google Analytics (`G-…`). Cuenta visitas y pedidos enviados, nunca el nombre del comprador |
 
 Después volvé a correr `node scripts/alta.mjs ../catalogo`. Así `index.html` toma el nombre, la bajada y el logo para el título y el ícono. No pisa lo que completaste.
 
