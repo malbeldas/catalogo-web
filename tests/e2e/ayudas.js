@@ -1,6 +1,7 @@
 // Ayudas comunes de los E2E.
 // - Toda llamada fuera de localhost se corta (nunca Google ni WhatsApp reales) y queda anotada.
 // - simularCatalogo() reemplaza los datos del comercio por los del test; abrirPlanilla() los sirve como la planilla publicada.
+// - servirRespaldo() sirve u oculta catalogo-respaldo.json, la última copia buena de la planilla (STORY-003).
 // - generarProductos() arma catálogos de cualquier tamaño.
 import { test as base, expect } from '@playwright/test';
 
