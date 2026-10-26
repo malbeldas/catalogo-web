@@ -1,9 +1,10 @@
 name: respaldo
 
-# Cada 15 minutos baja la planilla del comercio y, si es válida y cambió, guarda catalogo-respaldo.json
-# en main para que GitHub Pages lo publique (SPEC.md §4). El link del archivo del comercio va en el secreto
-# PLANILLA_URL, nunca en el repo. En el repo base no hay tienda.json ni secreto y no hace nada.
-# Las tareas programadas de GitHub pueden salir con demora cuando hay mucha carga.
+# Baja la planilla del comercio y, si es válida y cambió, guarda catalogo-respaldo.json en main para que
+# GitHub Pages lo publique (SPEC.md §4). El link del archivo del comercio va en el secreto PLANILLA_URL,
+# nunca en el repo. En el repo base no hay tienda.json ni secreto y no hace nada.
+# La pide cada 15 minutos el disparador de Google (workflow_dispatch, AC-010-6). El cron queda de respaldo:
+# GitHub no garantiza sus horarios y a veces no lo corre.
 on:
   schedule:
     - cron: '7,22,37,52 * * * *'
