@@ -102,6 +102,8 @@ Los extras de Distribuidora Pueyrredón (QR de reseñas con beneficio y probador
 - AC-024-1: la portada muestra qué incluye el servicio y el precio (alta y abono).
 - AC-024-2: un botón abre WhatsApp al número de ventas con un mensaje armado.
 - AC-024-3: la portada no nombra a Pueyrredón ni a PLED fuera de los ejemplos, ni usa "Mostrador" (regla hard 7).
+- AC-024-4: la portada muestra el catálogo con capturas reales, explica cómo funciona en 3 pasos y responde las preguntas frecuentes.
+- AC-024-5: al compartir el link de la portada se ve una vista previa con título, descripción e imagen.
 
 ---
 
@@ -147,7 +149,7 @@ No hay base de datos. Los datos viven en tres lugares:
 ## 4. Páginas y acciones del sistema
 
 **Repo base (`malbeldas/catalogo-web`)**
-- `index.html` — portada de venta con acceso a los ejemplos.
+- `index.html` — portada de venta (landing): capturas reales del catálogo, cómo funciona, ejemplos, precio, preguntas frecuentes y WhatsApp de ventas. Precio y contacto salen de `portada.json`.
 - `tienda.html?t=<id>&demo=1` — demo con barra de ejemplos y Funciones (pedido de ejemplo, precios sí/no, colores, armar catálogo).
 - `tiendas/<id>.json` — datos de los ejemplos de la demo.
 - `cliente/tienda.json` — molde de `tienda.json` para un cliente nuevo.
