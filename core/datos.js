@@ -1,5 +1,5 @@
 /* Lógica pura del catálogo: sin document, window ni localStorage (SPEC.md §6, regla hard 3).
-   Todo lo de acá tiene test unitario en tests/unit/ (datos, pedido y planilla). */
+   Todo lo de acá tiene test unitario en tests/unit/ (datos, pedido, planilla y ajustes). */
 
 // Minúsculas y sin acentos, para comparar textos como los escribe la gente ("lampara" = "Lámpara").
 export const sinAcentos = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
@@ -147,3 +147,26 @@ export function productosDesdeFilas(filas) {
 }
 
 export const productosDesdeCSV = texto => productosDesdeFilas(leerCSV(texto));
+
+// Pestaña Ajustes de la planilla: filas "Ajuste | Valor" (WhatsApp, Precios, Nombre, Bajada; SPEC.md §3).
+// Solo quedan los ajustes con valor: uno vacío deja el de tienda.json.
+const AJUSTES = { whatsapp: 'wa', precios: 'precios', nombre: 'nombre', bajada: 'bajada' };
+const siNo = v => ({ si: true, no: false })[sinAcentos(v).trim()];
+export function ajustesDesdeFilas(filas) {
+  const ajustes = {};
+  for (const [clave = '', valor = ''] of filas) {
+    const k = AJUSTES[sinAcentos(clave).trim()], v = k === 'precios' ? siNo(valor) : String(valor).trim();
+    if (k && v !== undefined && v !== '' && !(k in ajustes)) ajustes[k] = v;
+  }
+  return ajustes;
+}
+
+export const ajustesDesdeCSV = texto => ajustesDesdeFilas(leerCSV(texto));
+
+// Tienda lista para mostrar: los ajustes de la planilla pisan los de tienda.json.
+// Con precios ocultos, los productos se quedan sin importes aunque la planilla los haya publicado por error (regla hard 4).
+export function aplicarAjustes(tienda, ajustes = {}) {
+  const t = { ...tienda, ...ajustes };
+  if (!t.precios) t.productos = (t.productos || []).map(p => ({ ...p, p: null, antes: null }));
+  return t;
+}
