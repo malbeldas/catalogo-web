@@ -10,7 +10,7 @@ const cliente = { id: 'kiosco', nombre: 'Kiosco Ana', bajada: 'Golosinas y bebid
 async function abrirCliente(page, url) {
   const pedidos = [];
   page.on('request', r => pedidos.push(new URL(r.url()).pathname));
-  await page.route('**/cliente.html*', r => r.fulfill({ body: base.replace('<html lang="es-AR">', '<html lang="es-AR" data-tienda="tienda.json">'), contentType: 'text/html' }));
+  await page.route('**/cliente.html*', r => r.fulfill({ body: base.replace(/<html[^>]*>/, '<html lang="es-AR" data-tienda="tienda.json">'), contentType: 'text/html' }));
   await page.route('**/tienda.json', r => r.fulfill({ json: cliente }));
   await page.goto(url);
   await expect(page.locator('#stName')).toHaveText('Kiosco Ana');

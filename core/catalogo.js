@@ -1,5 +1,5 @@
 /* Catálogo web de marca blanca: productos, precios visibles u ocultos y pedidos por WhatsApp.
-   En la base, cada ejemplo es un JSON en tiendas/ y se elige con t=<id>.
+   En la base, cada ejemplo es un JSON en tiendas/ y se elige con t=<id>; tienda.html lista cuáles hay en data-ejemplos.
    En el repo de un cliente, la página dice cuál es su JSON con <html data-tienda="tienda.json"> (UC-021):
    la URL no puede cambiar de comercio ni abrir la demo.
    Si el JSON trae planilla.web, los productos salen de la pestaña Web publicada como CSV (UC-010),
@@ -13,7 +13,7 @@ const $=id=>document.getElementById(id);
 const Q=new URLSearchParams(location.search);
 const CLIENTE=document.documentElement.dataset.tienda||''; // repo de un cliente: un solo comercio
 const DEMO=!CLIENTE&&Q.get('demo')==='1'; // la demo se pide a propósito (AC-020-1); un comprador nunca la ve
-const TIENDAS=['pueyrredon','pled'];
+const EJEMPLOS=(document.documentElement.dataset.ejemplos||'').split(' ').filter(Boolean); // solo en la base: el núcleo no nombra ninguna marca
 let T=null,cart={},cat='Todo',showPrices=false,lista=[],mostrados=0;
 
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
@@ -167,5 +167,5 @@ const app={get T(){return T},set T(v){T=v},get precios(){return showPrices},set 
   ls,toast,open,close,theme,render,grid,cartUI,lines,logoHTML,load};
 if(DEMO)demo=(await import('./demo.js')).iniciarDemo(app);
 
-const t=Q.get('t'),ids=[...TIENDAS,...(demo?.ids||[])];
-load(ids.includes(t)?t:'pueyrredon').then(()=>demo?.alAbrir());
+const t=Q.get('t'),ids=[...EJEMPLOS,...(demo?.ids||[])];
+load(ids.includes(t)?t:EJEMPLOS[0]).then(()=>demo?.alAbrir());
