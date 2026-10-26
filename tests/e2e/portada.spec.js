@@ -1,7 +1,7 @@
 // UC-024 — Portada de venta: qué incluye, precio y consulta por WhatsApp (SPEC.md §2).
 import { readFileSync } from 'node:fs';
 import { test, expect } from './ayudas.js';
-import { money } from '../../core/datos.js';
+import { money, mensajePedido } from '../../core/datos.js';
 
 const portada = JSON.parse(readFileSync(new URL('../../portada.json', import.meta.url), 'utf8'));
 const WA = `https://wa.me/5491160132068?text=${encodeURIComponent(portada.mensaje)}`;
@@ -51,6 +51,60 @@ test('AC-024-3 la portada no nombra a Pueyrredón ni a PLED fuera de los ejemplo
   for (const t of textos) expect(t).not.toMatch(otraMarca);
   expect(JSON.stringify(portada)).not.toMatch(otraMarca);
   expect(await page.content()).not.toMatch(/mostrador/i);
+});
+
+test('AC-024-2 todos los botones de WhatsApp van al número de ventas, y en el celular queda uno fijo al bajar', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#precio')).toBeVisible();
+  const links = await page.locator('a.js-wa, #consultar').evaluateAll(as => as.map(a => a.href));
+  expect(links.length).toBeGreaterThanOrEqual(4);
+  for (const l of links) expect(l).toBe(WA);
+  const fijo = page.locator('#waFijo');
+  // Arriba se ve el botón del principio, así que el fijo no aparece.
+  await expect(fijo).toHaveClass(/fuera/);
+  await page.locator('#como').scrollIntoViewIfNeeded();
+  await expect(fijo).not.toHaveClass(/fuera/);
+  await expect(fijo).toBeInViewport({ ratio: 1 });
+  // Cuando se ve el botón del cierre, el fijo se esconde para no taparlo.
+  await page.locator('.cierre .js-wa').scrollIntoViewIfNeeded();
+  await expect(fijo).toHaveClass(/fuera/);
+});
+
+test('AC-024-4 la portada muestra capturas reales, cómo funciona en 3 pasos y preguntas frecuentes', async ({ page }) => {
+  await page.goto('/');
+  // Todas las capturas existen y cargan (no hay fotos rotas).
+  const fotos = page.locator('main img[src^="img/portada/"]');
+  expect(await fotos.count()).toBeGreaterThanOrEqual(5);
+  for (const f of await fotos.all()) {
+    await f.scrollIntoViewIfNeeded();
+    await expect.poll(() => f.evaluate(i => i.complete && i.naturalWidth)).toBe(750);
+  }
+  await expect(page.locator('.pasos li')).toHaveCount(3);
+  // El mensaje de ejemplo es el que arma el catálogo.
+  const ejemplo = [{ p: { n: 'Almendras peladas 250 g', p: 5900 }, q: 1 }, { p: { n: 'Mix de frutos secos 250 g', p: 4800 }, q: 2 }];
+  await expect(page.locator('#mensaje')).toHaveText(mensajePedido(ejemplo, { comercio: 'La Alacena Natural', precios: true }));
+  const preguntas = page.locator('.faq details');
+  expect(await preguntas.count()).toBeGreaterThanOrEqual(5);
+  const primera = preguntas.first();
+  await expect(primera.locator('p')).toBeHidden();
+  await primera.locator('summary').tap();
+  await expect(primera.locator('p')).toBeVisible();
+  // Mobile first (regla hard 6): con todo abierto, nada se sale de los 375 px.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+});
+
+test('AC-024-5 al compartir el link se ve título, descripción e imagen de 1200 × 630', async ({ page }) => {
+  await page.goto('/');
+  const meta = n => page.locator(`meta[property="${n}"]`).getAttribute('content');
+  expect(await meta('og:title')).toBeTruthy();
+  expect((await meta('og:description')).length).toBeGreaterThan(40);
+  const imagen = await meta('og:image');
+  // WhatsApp necesita la URL completa de la imagen, en https.
+  expect(imagen).toBe('https://malbeldas.github.io/catalogo-web/img/portada/compartir.jpg');
+  expect(await meta('og:image:width')).toBe('1200');
+  expect(await meta('og:image:height')).toBe('630');
+  const tam = await page.evaluate(() => new Promise(ok => { const i = new Image(); i.onload = () => ok([i.naturalWidth, i.naturalHeight]); i.onerror = () => ok(null); i.src = 'img/portada/compartir.jpg'; }));
+  expect(tam).toEqual([1200, 630]);
 });
 
 test('humo: la portada no lleva noindex, así Google la puede mostrar', async ({ page }) => {
