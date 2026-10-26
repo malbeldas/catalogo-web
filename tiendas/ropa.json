@@ -1,0 +1,60 @@
+{
+ "id": "ropa",
+ "nombre": "Lucía Ropa Mayorista",
+ "bajada": "Ropa de mujer por mayor · envíos a todo el país",
+ "tipo": "Mayorista",
+ "color": "#3d2b2b",
+ "wa": "5491100000000",
+ "precios": false,
+ "categorias": [
+  "Remeras",
+  "Jeans",
+  "Buzos y sweaters",
+  "Vestidos",
+  "Camperas"
+ ],
+ "productos": [
+  {
+   "id": "r1",
+   "n": "Remera básica algodón",
+   "cat": "Remeras",
+   "img": "img/ficticias/ropa-remera.jpg",
+   "d": "Talles S al XL · 6 colores"
+  },
+  {
+   "id": "r2",
+   "n": "Jean mom tiro alto",
+   "cat": "Jeans",
+   "img": "img/ficticias/ropa-jean.jpg",
+   "d": "Rígido · talles 36 al 46"
+  },
+  {
+   "id": "r3",
+   "n": "Buzo canguro frisa",
+   "cat": "Buzos y sweaters",
+   "img": "img/ficticias/ropa-buzo.jpg",
+   "d": "Talle único · 4 colores"
+  },
+  {
+   "id": "r4",
+   "n": "Vestido corto estampado",
+   "cat": "Vestidos",
+   "img": "img/ficticias/ropa-vestido.jpg",
+   "d": "Breteles finos · estampados surtidos"
+  },
+  {
+   "id": "r5",
+   "n": "Campera de jean",
+   "cat": "Camperas",
+   "img": "img/ficticias/ropa-campera.jpg",
+   "d": "Forrada en corderito · S al XL"
+  },
+  {
+   "id": "r6",
+   "n": "Sweater de hilo rayado",
+   "cat": "Buzos y sweaters",
+   "img": "img/ficticias/ropa-sweater.jpg",
+   "d": "Cuello redondo · 3 combinaciones"
+  }
+ ]
+}

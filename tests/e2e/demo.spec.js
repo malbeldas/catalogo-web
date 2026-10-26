@@ -21,11 +21,11 @@ for (const [caso, url] of [['sin demo', '/tienda.html?t=pled'], ['con demo=0', '
   });
 }
 
-test('AC-020-1 con demo=1 aparece la barra con los tres ejemplos y Funciones', async ({ page }) => {
+test('AC-020-1 con demo=1 aparece la barra con los ejemplos y Funciones', async ({ page }) => {
   await simularCatalogo(page, { productos });
   await page.goto('/tienda.html?t=pled&demo=1');
   await expect(page.locator('#demobar')).toBeVisible();
-  await expect(page.locator('#demoEx button')).toHaveText(['Mayorista', 'Minorista', 'Tu cliente']);
+  await expect(page.locator('#demoEx button')).toHaveText(['Mayorista', 'Minorista', 'Ropa', 'Dietética', 'Tu cliente']);
   await expect(page.locator('#demoFx')).toBeVisible();
 });
 
@@ -121,3 +121,17 @@ test('SPEC §5 con el celular sin espacio la demo avisa "No hay más lugar en es
   await expect(page.locator('#toast')).toHaveText('No hay más lugar en este celular: quitá algún producto');
   await expect(page.locator('#eProds .ep')).toHaveCount(1);
 });
+
+for (const [id, nombre, conPrecios] of [['ropa', 'Lucía Ropa Mayorista', false], ['dietetica', 'La Alacena Natural', true]]) {
+  test(`UC-020 el ejemplo ficticio ${nombre} muestra sus productos con foto y sin marcas reales`, async ({ page }) => {
+    await page.goto(`/tienda.html?t=${id}&demo=1`);
+    await expect(page.locator('#stName')).toHaveText(nombre);
+    await expect(page.locator('#demoEx button[aria-selected="true"]')).toHaveText(id === 'ropa' ? 'Ropa' : 'Dietética');
+    await expect(page.locator('#grid .pc')).toHaveCount(6);
+    const fotos = page.locator('#grid .pc .ph img');
+    await expect(fotos).toHaveCount(6);
+    await expect.poll(() => fotos.evaluateAll(ims => ims.every(im => im.complete && im.naturalWidth > 0))).toBe(true);
+    await expect(page.locator('#grid .pr')).toHaveCount(conPrecios ? 6 : 0);
+    await expect(page.locator('#vCat')).not.toContainText(/Pueyrred|PLED/i);
+  });
+}

@@ -1,0 +1,65 @@
+{
+ "id": "dietetica",
+ "nombre": "La Alacena Natural",
+ "bajada": "Dietética · frutos secos, cereales y miel",
+ "tipo": "Minorista",
+ "color": "#2f4a2b",
+ "wa": "5491100000000",
+ "precios": true,
+ "categorias": [
+  "Frutos secos",
+  "Cereales",
+  "Endulzantes"
+ ],
+ "productos": [
+  {
+   "id": "d1",
+   "n": "Almendras peladas 250 g",
+   "cat": "Frutos secos",
+   "img": "img/ficticias/diet-almendras.jpg",
+   "p": 5900,
+   "d": "Non pareil · sin sal"
+  },
+  {
+   "id": "d2",
+   "n": "Mix de frutos secos 250 g",
+   "cat": "Frutos secos",
+   "img": "img/ficticias/diet-mix.jpg",
+   "p": 4800,
+   "antes": 5600,
+   "d": "Nueces, almendras, pasas y maní"
+  },
+  {
+   "id": "d3",
+   "n": "Nueces con cáscara 1 kg",
+   "cat": "Frutos secos",
+   "img": "img/ficticias/diet-nueces.jpg",
+   "p": 6900,
+   "d": "Cosecha nueva"
+  },
+  {
+   "id": "d4",
+   "n": "Granola artesanal 500 g",
+   "cat": "Cereales",
+   "img": "img/ficticias/diet-granola.jpg",
+   "p": 4500,
+   "d": "Con miel y coco"
+  },
+  {
+   "id": "d5",
+   "n": "Avena arrollada 1 kg",
+   "cat": "Cereales",
+   "img": "img/ficticias/diet-avena.jpg",
+   "p": 2900,
+   "d": "Tradicional"
+  },
+  {
+   "id": "d6",
+   "n": "Miel con panal 500 g",
+   "cat": "Endulzantes",
+   "img": "img/ficticias/diet-miel.jpg",
+   "p": 6500,
+   "d": "De la zona de Entre Ríos"
+  }
+ ]
+}
