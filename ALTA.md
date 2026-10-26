@@ -27,7 +27,7 @@ Pedile al comercio:
 | 4 | Completar `tienda.json` y el logo | Claude | 5 min |
 | 5 | Verificar | Claude | 1 min |
 | 6 | Subir y activar GitHub Pages | Claude o vendedor | 5 min |
-| 7 | Guardar el link y correr la tarea respaldo | Vendedor o Claude | 3 min |
+| 7 | Guardar el link, correr la tarea respaldo y sumarla al disparador | Vendedor o Claude | 5 min |
 | 8 | Probarlo en el celular y mandar el link | Vendedor | 5 min |
 | 9 | Opcional: QR de reseñas de Google | Vendedor y Claude | 10 min |
 
@@ -119,14 +119,15 @@ git add -A && git commit -m "Alta del catálogo" && git push -u origin main
 
 En el repo, **Settings > Pages**: *Deploy from a branch*, `main`, carpeta `/ (root)`. A los pocos minutos la web está en la URL del paso 1.
 
-### 7. Guardar el link y correr la tarea respaldo (vendedor o Claude)
+### 7. Guardar el link, correr la tarea respaldo y sumarla al disparador (vendedor o Claude)
 
 1. En el repo, **Settings > Secrets and variables > Actions > New repository secret**: nombre `PLANILLA_URL`, valor el link del paso 3. Claude lo puede hacer con `gh secret set PLANILLA_URL` si tiene permiso de administrador en el repo.
 2. **Actions > respaldo > Run workflow.** Tiene que terminar en verde y dejar `catalogo-respaldo.json` en `main`. Si termina en rojo, el archivo no está compartido con el enlace o no tiene la columna `Nombre`.
+3. **Sumar el cliente al disparador (vendedor).** Si el disparador todavía no está instalado, seguí [Disparador](#disparador-una-sola-vez) primero.
+   - En GitHub, editá el token de la cuenta del repo (**Settings > Developer settings > Personal access tokens > Fine-grained tokens**) y sumá el repo en **Repository access**. Si la cuenta es nueva para el disparador, creá un token para ella.
+   - En el proyecto de Apps Script, **Configuración del proyecto > Propiedades de secuencia de comandos**: agregá el repo en una línea nueva de `CLIENTES` (`cuenta/repo`).
 
-Desde ahí la tarea corre sola cada 15 minutos: lee el archivo, saca los productos con Visible = NO y los precios si Precios = NO, y guarda la copia que muestra la web. Un cambio del comercio se ve en la web en unos 15 a 20 minutos. GitHub puede demorar las tareas programadas cuando tiene mucha carga.
-
-GitHub pausa las tareas programadas de un repo sin actividad por 60 días. Si pasa, se reactiva desde Actions; mientras tanto la web sigue mostrando la última copia.
+Desde ahí el disparador pide la tarea cada 15 minutos: lee el archivo, saca los productos con Visible = NO y los precios si Precios = NO, y guarda la copia que muestra la web. Un cambio del comercio se ve en la web en unos 15 a 20 minutos (AC-010-6). El cron de GitHub del workflow queda de respaldo, pero no se puede contar con él: casi no corre solo.
 
 **Clientes con la planilla publicada:** un alta anterior puede seguir con `planilla.web` y `planilla.ajustes` (los links CSV de "Publicar en la Web") y sin el secreto. En ese modo la web lee la planilla directo y la tarea respaldo guarda la copia para cuando Google falla.
 
@@ -162,8 +163,57 @@ Una tarjeta con el logo y el color del comercio y un QR que abre el formulario d
 5. **Probar (vendedor).** Escaneá el QR del PNG con la cámara del celular: tiene que abrir el formulario de reseña del negocio en Google. Si la web recién se publicó, esperá a que GitHub Pages termine.
 6. **Entregar (vendedor).** Mandale al comercio el PNG y el PDF. Lo imprime en cualquier imprenta o en su casa, en papel grueso, y deja la tarjeta en la caja o la manda con cada pedido.
 
+## Disparador (una sola vez)
+
+Un Apps Script en tu cuenta de Google que cada 15 minutos le pide a GitHub correr la tarea respaldo de cada cliente (AC-010-6, `SPEC.md` §4). Es uno solo para todos los clientes. Lo hace el vendedor, porque necesita su cuenta de GitHub y la de Google; lleva unos 10 minutos.
+
+### 1. Un token de GitHub por cuenta
+
+Un token por cada cuenta u organización dueña de repos de clientes. Por ejemplo, uno para `malbeldas` y otro para `distribuidora-pueyrredon`.
+
+1. En GitHub: **Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token**.
+2. **Token name:** `Disparador catálogos`. **Expiration:** el plazo más largo que te ofrezca. Anotá la fecha: cuando vence, el disparador falla y te llega un mail.
+3. **Resource owner:** la cuenta o la organización de los repos.
+4. **Repository access > Only select repositories:** los repos de catálogo de esa cuenta.
+5. **Permissions > Repository permissions > Actions: Read and write.** Nada más; el resto queda en *No access*.
+6. **Generate token** y copiá el token. GitHub lo muestra una sola vez.
+
+Si el dueño es una organización, puede que el token quede pendiente de aprobación: se aprueba en la organización, en **Settings > Personal access tokens > Pending requests**.
+
+El token no va en ningún repo ni en el chat: va solo en las propiedades del script (paso 3).
+
+### 2. El proyecto de Apps Script
+
+1. Entrá a [script.google.com](https://script.google.com) con tu cuenta de Google y tocá **Nuevo proyecto**.
+2. Arriba, cambiale el nombre a `Disparador catálogos`.
+3. Borrá todo lo que trae `Código.gs` y pegá el contenido de `disparador/Codigo.gs` de este repo. Guardá.
+
+### 3. Las propiedades
+
+En **Configuración del proyecto** (el engranaje), **Propiedades de secuencia de comandos > Agregar propiedad de secuencia de comandos**:
+
+| Propiedad | Valor |
+|---|---|
+| `CLIENTES` | Un repo por línea, como `cuenta/repo`. Por ejemplo `distribuidora-pueyrredon/distribuidora-pueyrredon.github.io` |
+| `TOKEN_<cuenta>` | El token de esa cuenta. Por ejemplo `TOKEN_distribuidora-pueyrredon` |
+
+Guardá.
+
+### 4. Instalar y autorizar
+
+1. En el editor, elegí la función `instalar` en la lista de arriba y tocá **Ejecutar**.
+2. Google pide permisos. Como es un script tuyo y no está publicado, avisa que la app no está verificada: **Configuración avanzada > Ir a Disparador catálogos** y **Permitir**. Pide conectarse a servicios externos (GitHub) y administrar sus propios activadores.
+3. En el registro tiene que decir **Actualización pedida para N cliente(s).** Si dice que falta un token o que GitHub respondió 401, 403 o 404, revisá el token (paso 1) y las propiedades (paso 3), y volvé a correr `instalar`. Correrlo de nuevo no duplica nada.
+
+`instalar` deja un activador cada 15 minutos. Se ve en **Activadores** (el reloj). Ahí, en el activador, **Notificaciones de fallos** dice cada cuánto te avisa Google por mail si falla; con **Diariamente** llega un resumen por día.
+
+### 5. Comprobar
+
+En GitHub, en el repo de un cliente, **Actions > respaldo**: aparece una corrida con el evento `workflow_dispatch` cada unos 15 minutos.
+
 ## Después del alta
 
 - El comercio edita solo su archivo. Los cambios se ven en unos 15 a 20 minutos.
+- Si llega un mail de Apps Script con un error del disparador, dice qué cliente falló y por qué. Lo más común es un token vencido: se genera uno nuevo (paso 1 del disparador) y se reemplaza en las propiedades.
 - Si el comercio cambia de archivo, se cambia el secreto `PLANILLA_URL`. Si deja de compartirlo, la tarea respaldo queda en rojo, GitHub avisa por mail y la web sigue con la última copia.
 - Una mejora del núcleo se hace en la base y se lleva a cada cliente volviendo a correr `alta.mjs` sobre su repo (UC-022, STORY-008). Nunca se edita `core/` en el repo de un cliente.
