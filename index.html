@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Catálogo web · Pedidos por WhatsApp</title>
-<meta name="description" content="Tu catálogo en el celular de tus clientes: tus productos con tu logo, precios visibles u ocultos y pedidos por WhatsApp. Lo administrás desde tu Excel.">
+<title>Catálogo web · Dejá de mandar la lista por WhatsApp</title>
+<meta name="description" content="Tus productos en un link y los pedidos por WhatsApp. Precios a la vista o a consultar, y la lista la seguís manejando en tu Excel.">
 <meta name="theme-color" content="#111418">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_AR">
 <meta property="og:url" content="https://malbeldas.github.io/catalogo-web/">
-<meta property="og:title" content="Catálogo web · Pedidos por WhatsApp">
-<meta property="og:description" content="Tus productos con tu logo, en el celular de tus clientes. Te piden por WhatsApp y vos lo manejás desde tu Excel.">
+<meta property="og:title" content="Catálogo web · Dejá de mandar la lista por WhatsApp">
+<meta property="og:description" content="Tus productos en un link, con tu logo. Tus clientes eligen y te piden por WhatsApp. Lo manejás desde tu Excel.">
 <meta property="og:image" content="https://malbeldas.github.io/catalogo-web/img/portada/compartir.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -50,21 +50,28 @@ h2 em,h1 em{font-style:normal;color:var(--amber)}
 .btn svg{width:22px;height:22px;flex:none}
 .btn-wa{background:var(--wa);color:var(--on-wa)}
 .btn-2{background:var(--panel);border:1px solid var(--line);color:var(--txt)}
-.trust{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:18px;color:var(--txt-3);font-size:14px}
-.trust span{display:flex;align-items:center;gap:6px}
-.trust span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.trust{margin-top:18px;color:var(--txt-3);font-size:14px}
 .tel{position:relative;width:min(300px,82vw);margin:0 auto;padding:9px;border-radius:40px;background:#000;border:1px solid #2c323b;box-shadow:0 30px 70px rgba(0,0,0,.5)}
 .tel img{width:100%;height:auto;aspect-ratio:375/740;object-fit:cover;object-position:top;border-radius:31px;background:#f6f7f9}
-.hero .tel{max-height:470px;overflow:hidden;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;-webkit-mask-image:linear-gradient(#000 75%,transparent);mask-image:linear-gradient(#000 75%,transparent)}
+.hero .tel,.caso .tel{max-height:470px;overflow:hidden;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;-webkit-mask-image:linear-gradient(#000 75%,transparent);mask-image:linear-gradient(#000 75%,transparent)}
 
 /* El problema */
 .dolor{display:grid;gap:10px;margin-top:22px;padding:0;list-style:none}
 .dolor li{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:16px;background:var(--panel);border:1px solid var(--line);color:var(--txt-2)}
 .dolor i{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:#2a1d1f;color:#ff8a7a}
 .dolor i svg{width:20px;height:20px}
-.dolor b{display:block;color:var(--txt);font-size:16px}
+.dolor li span{padding-top:6px;font-size:16px;line-height:1.45}
 .solucion{margin-top:16px;padding:18px;border-radius:16px;background:rgba(255,204,51,.1);border:1px solid rgba(255,204,51,.25);color:#ffe28a;font-weight:600;line-height:1.45}
 
+/* Caso real */
+.caso{display:grid;gap:28px;margin-top:24px}
+.caso .tel{max-height:420px}
+.caso p{color:var(--txt-2);font-size:17px;line-height:1.55}
+.caso p+p{margin-top:12px}
+.datos{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;padding:0;list-style:none}
+.datos li{padding:10px 14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:var(--txt-2);font-size:14px}
+.datos b{color:var(--txt);font-size:16px}
+.caso .btn{margin-top:22px}
 /* Cómo funciona */
 .pasos{display:grid;gap:12px;margin-top:22px;padding:0;list-style:none;counter-reset:paso}
 .pasos li{position:relative;padding:20px 18px 20px 72px;border-radius:16px;background:var(--panel);border:1px solid var(--line);counter-increment:paso}
@@ -93,6 +100,8 @@ h2 em,h1 em{font-style:normal;color:var(--amber)}
 .tipo small{display:block;margin-top:4px;color:var(--txt-2);font-size:15px;line-height:1.45}
 .rubros{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding:0;list-style:none}
 .rubros li{padding:8px 14px;border-radius:999px;border:1px solid var(--line);color:var(--txt-2);font-size:14px}
+.nota{margin-top:20px;padding:16px 18px;border-radius:16px;border:1px dashed #3a414b;color:var(--txt-2);font-size:15px;line-height:1.5}
+.nota b{color:var(--txt)}
 
 /* Ejemplos */
 .go{display:grid;gap:10px;margin-top:22px}
@@ -128,7 +137,8 @@ h2 em,h1 em{font-style:normal;color:var(--amber)}
 .cierre{margin-top:56px;padding:32px 20px;border-radius:24px;background:linear-gradient(160deg,#1f242c,#16191e);border:1px solid var(--line);text-align:center}
 .cierre p{margin:10px auto 0;max-width:420px;color:var(--txt-2)}
 .cierre .btn{margin:22px auto 0;max-width:380px}
-.pie{padding:28px 0 calc(110px + env(safe-area-inset-bottom,0px));color:var(--txt-3);font-size:13px;text-align:center}
+.pie{padding:28px 0 calc(110px + env(safe-area-inset-bottom,0px));color:var(--txt-3);font-size:14px;line-height:1.6;text-align:center}
+.pie a{color:var(--txt-2)}
 
 /* WhatsApp fijo abajo en el celular */
 .fijo{position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 10px 30px rgba(0,0,0,.45);transition:transform .25s,opacity .25s}
@@ -140,6 +150,8 @@ h2 em,h1 em{font-style:normal;color:var(--amber)}
   .hero{grid-template-columns:1.1fr .9fr;align-items:center;gap:56px;padding-top:56px}
   .hero h1{font-size:60px}
   .ctas{grid-template-columns:auto auto;justify-content:start}
+  .caso{grid-template-columns:auto 1fr;align-items:center;gap:56px}
+  .caso .tel{width:300px}
   .hero .tel{max-height:none;width:320px;border-radius:40px;border-bottom:1px solid #2c323b;-webkit-mask-image:none;mask-image:none}
   .dolor,.pasos{grid-template-columns:repeat(3,1fr)}
   .galeria{justify-content:center;overflow:visible;margin:28px 0 0;padding:0}
@@ -162,49 +174,60 @@ h2 em,h1 em{font-style:normal;color:var(--amber)}
 
   <section class="hero" id="arriba">
     <div>
-      <span class="eyebrow">Para comercios mayoristas y minoristas</span>
-      <h1>Tu catálogo en el celular de <em>tus clientes</em>.</h1>
-      <p class="lead">Una página con tus productos, tu logo y tus colores. Tus clientes eligen y te mandan el pedido armado por WhatsApp. Vos lo manejás desde tu Excel.</p>
+      <span class="eyebrow">Para comercios que venden por WhatsApp</span>
+      <h1>Dejá de mandar <em>la lista</em> por WhatsApp.</h1>
+      <p class="lead">Te armo una página con tus productos, tus fotos y tu logo. Tus clientes la abren desde el celular, eligen y te mandan el pedido ya armado. La lista la seguís manejando en tu Excel.</p>
       <div class="ctas">
-        <a class="btn btn-wa js-wa" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Consultar por WhatsApp</a>
-        <a class="btn btn-2" href="#ejemplos">Ver un ejemplo</a>
+        <a class="btn btn-wa js-wa" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Escribime por WhatsApp</a>
+        <a class="btn btn-2" href="#caso">Ver un catálogo andando</a>
       </div>
-      <p class="trust"><span>Sin instalar nada</span><span>Anda en cualquier celular</span><span>Precios a la vista u ocultos</span></p>
+      <p class="trust">Es un link: no hay que instalar nada y abre en cualquier celular.</p>
     </div>
     <figure class="tel"><img src="img/portada/catalogo.jpg" width="750" height="1480" fetchpriority="high" alt="Catálogo de una dietética abierto en el celular: productos con foto, precio y botón Agregar"></figure>
   </section>
 
   <section aria-labelledby="dolor-titulo">
-    <h2 id="dolor-titulo">¿Te piden la lista <em>todo el día</em>?</h2>
+    <h2 id="dolor-titulo">Si vendés por WhatsApp, <em>esto te suena</em></h2>
     <ul class="dolor">
-      <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></i><span><b>La lista en PDF queda vieja</b>Cambiás un precio y tenés que volver a mandarla a todos.</span></li>
-      <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 16-5-5-8 8"/></svg></i><span><b>Fotos de a una por WhatsApp</b>Cada cliente pregunta lo mismo y vos mandás las mismas fotos.</span></li>
-      <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M12 8v4M12 15.5v.5"/></svg></i><span><b>Pedidos perdidos en el chat</b>Cantidades sueltas en varios mensajes que hay que juntar a mano.</span></li>
+      <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></i><span>Mandás la lista en PDF y a la semana ya tiene precios viejos.</span></li>
+      <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 16-5-5-8 8"/></svg></i><span>Cada cliente te pide las mismas fotos, de a una.</span></li>
+      <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/><path d="M12 8v4M12 15.5v.5"/></svg></i><span>El pedido llega en cinco mensajes y lo tenés que juntar a mano.</span></li>
     </ul>
-    <p class="solucion">Con tu catálogo, el cliente mira los productos cuando quiere, elige y te manda un solo mensaje con todo el pedido.</p>
+    <p class="solucion">El catálogo no reemplaza tu WhatsApp: lo ordena. El cliente mira tranquilo, elige y te llega un solo mensaje con todo.</p>
+  </section>
+
+  <section id="caso" aria-labelledby="caso-titulo">
+    <h2 id="caso-titulo">Un caso real: <em>Distribuidora Pueyrredón</em></h2>
+    <div class="caso">
+      <figure class="tel"><img src="img/portada/pueyrredon.jpg" width="750" height="1480" loading="lazy" alt="Catálogo de Distribuidora Pueyrredón en el celular: reflectores con foto y botón Consultar"></figure>
+      <div>
+        <p>Distribuidora Pueyrredón fue el primer comercio en usarlo. Vende iluminación y material eléctrico por mayor, desde CABA a todo el país.</p>
+        <p>Su lista de 2.637 productos vive en un Excel en el Drive. Hoy esa lista es un catálogo: cuando cambia algo en el Excel, la página se actualiza sola, y los pedidos llegan por WhatsApp como siempre.</p>
+        <ul class="datos"><li><b>2.637</b> productos</li><li><b>Precios</b> a consultar</li><li><b>Se actualiza</b> desde su Excel</li></ul>
+        <a class="btn btn-2" href="https://distribuidora-pueyrredon.github.io/catalogo/" target="_blank" rel="noopener">Ver el catálogo de Pueyrredón →</a>
+      </div>
+    </div>
   </section>
 
   <section id="como" aria-labelledby="como-titulo">
-    <h2 id="como-titulo">Cómo funciona</h2>
-    <p class="sub">Vos no tenés que aprender nada nuevo.</p>
+    <h2 id="como-titulo">Cómo arrancamos</h2>
     <ol class="pasos">
-      <li><b>Nos pasás tu lista y tus fotos</b><small>El Excel o la planilla que ya usás. Si no tenés, te damos una plantilla.</small></li>
-      <li><b>Armamos tu catálogo</b><small>Con tu logo y tus colores, en un link propio para compartir por WhatsApp, Instagram o donde quieras.</small></li>
-      <li><b>Te piden por WhatsApp</b><small>El pedido te llega armado. Para cambiar precios o productos, editás tu planilla y listo.</small></li>
+      <li><b>Me pasás tu lista</b><small>El Excel o la planilla que ya tenés, con las fotos que tengas. Si no tenés nada armado, lo armamos juntos.</small></li>
+      <li><b>Armo tu catálogo</b><small>Con tu logo y tus colores, en un link tuyo. Lo revisás antes de compartirlo.</small></li>
+      <li><b>Lo compartís y te piden</b><small>Por WhatsApp, Instagram o donde quieras. Si cambiás un precio en tu Excel, en unos minutos se ve en la página.</small></li>
     </ol>
   </section>
 
   <section aria-labelledby="ve-titulo">
-    <h2 id="ve-titulo">Lo que ve <em>tu cliente</em></h2>
-    <p class="sub">Capturas de un catálogo de ejemplo, tal como se ve en el celular.</p>
+    <h2 id="ve-titulo">Así lo ve <em>tu cliente</em></h2>
+    <p class="sub">Capturas de un catálogo de prueba, en un celular.</p>
     <div class="galeria">
-      <figure><div class="tel"><img src="img/portada/buscar.jpg" width="750" height="1480" loading="lazy" alt="Búsqueda de miel en el catálogo, con dos resultados"></div><figcaption><b>Busca y filtra</b>Encuentra lo que quiere en segundos.</figcaption></figure>
-      <figure><div class="tel"><img src="img/portada/catalogo.jpg" width="750" height="1480" loading="lazy" alt="Productos con foto, precio, oferta y botón Agregar"></div><figcaption><b>Ve fotos y precios</b>Con ofertas, o con precios a consultar.</figcaption></figure>
-      <figure><div class="tel"><img src="img/portada/pedido.jpg" width="750" height="1480" loading="lazy" alt="Pedido armado con dos productos, total y botón Enviar pedido por WhatsApp"></div><figcaption><b>Arma su pedido</b>Y lo envía por WhatsApp con un toque.</figcaption></figure>
+      <figure><div class="tel"><img src="img/portada/buscar.jpg" width="750" height="1480" loading="lazy" alt="Búsqueda de miel en el catálogo, con dos resultados"></div><figcaption><b>Busca por nombre</b>o por categoría</figcaption></figure>
+      <figure><div class="tel"><img src="img/portada/catalogo.jpg" width="750" height="1480" loading="lazy" alt="Productos con foto, precio, oferta y botón Agregar"></div><figcaption><b>Mira fotos y precios</b>o los consulta, si están ocultos</figcaption></figure>
+      <figure><div class="tel"><img src="img/portada/pedido.jpg" width="750" height="1480" loading="lazy" alt="Pedido armado con dos productos, total y botón Enviar pedido por WhatsApp"></div><figcaption><b>Arma el pedido</b>y lo manda por WhatsApp</figcaption></figure>
     </div>
     <div class="llega">
-      <h3>Y a vos te llega así</h3>
-      <p>El mensaje sale del catálogo, listo para preparar el pedido:</p>
+      <h3>Y a vos te llega este mensaje:</h3>
       <p class="msj" id="mensaje">Hola La Alacena Natural! Quiero hacer este pedido:
 • 1 × Almendras peladas 250 g ($5.900)
 • 2 × Mix de frutos secos 250 g ($9.600)
@@ -213,19 +236,20 @@ Total estimado: $15.500</p>
   </section>
 
   <section aria-labelledby="quien-titulo">
-    <h2 id="quien-titulo">Para quién es</h2>
+    <h2 id="quien-titulo">¿Para qué negocios sirve?</h2>
     <div class="quien">
-      <div class="tipo"><img src="img/portada/mayorista.jpg" width="750" height="1480" loading="lazy" alt="Catálogo de ropa por mayor con precios a consultar"><span><b>Mayoristas</b><small>Mostrá todo tu surtido sin publicar precios: el cliente consulta y vos cotizás.</small></span></div>
+      <div class="tipo"><img src="img/portada/mayorista.jpg" width="750" height="1480" loading="lazy" alt="Catálogo de ropa por mayor con precios a consultar"><span><b>Mayoristas</b><small>Mostrás todo lo que tenés sin publicar precios. El cliente pregunta y vos cotizás, como siempre.</small></span></div>
       <div class="tipo"><img src="img/portada/catalogo.jpg" width="750" height="1480" loading="lazy" alt="Catálogo de una dietética con precios y ofertas"><span><b>Minoristas</b><small>Precios a la vista, ofertas con el precio anterior tachado y el total del pedido.</small></span></div>
     </div>
     <ul class="rubros" aria-label="Algunos rubros">
       <li>Ropa</li><li>Dietética</li><li>Iluminación</li><li>Ferretería</li><li>Librería</li><li>Bazar</li><li>Cosmética</li><li>Repuestos</li>
     </ul>
+    <p class="nota"><b>Lo que no hace:</b> no cobra online ni maneja stock. El pago y la entrega los arreglás con tu cliente, como hoy.</p>
   </section>
 
   <section id="ejemplos" aria-labelledby="ejemplos-titulo">
-    <h2 id="ejemplos-titulo">Probalo vos mismo</h2>
-    <p class="sub">Ejemplos que funcionan de verdad. Abrilos desde el celular.</p>
+    <h2 id="ejemplos-titulo">Miralo andando</h2>
+    <p class="sub">Son catálogos de prueba, pero funcionan igual que uno real. Abrilos desde el celular.</p>
     <div class="go">
       <a class="y" href="tienda.html?t=propia&amp;demo=1"><span>Armalo con tu negocio<small>Sacale fotos a 3 productos y miralo en un minuto</small></span><span>→</span></a>
       <a href="tienda.html?t=pueyrredon&amp;demo=1"><span>Ejemplo mayorista<small>Catálogo sin precios, se consulta por WhatsApp</small></span><span>→</span></a>
@@ -247,26 +271,27 @@ Total estimado: $15.500</p>
       <a class="btn btn-wa" id="consultar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Consultar por WhatsApp</a>
     </div>
     <div id="preguntas">
-      <h2>Preguntas frecuentes</h2>
+      <h2>Preguntas</h2>
       <div class="faq">
-        <details><summary>¿Tengo que saber de computación?</summary><p>No. Seguís usando tu Excel o tu planilla de Google, como hoy. El catálogo lo armamos nosotros.</p></details>
-        <details><summary>¿Puedo no mostrar los precios?</summary><p>Sí. Elegís si se ven o quedan a consultar. Si los ocultás, no aparecen en ninguna parte de la página ni en el mensaje.</p></details>
-        <details><summary>¿Cuánto tardan en verse los cambios?</summary><p>Unos 15 a 20 minutos después de guardar tu planilla. No tenés que avisarnos.</p></details>
-        <details><summary>¿Mis clientes tienen que instalar algo?</summary><p>No. Es una página: la abren desde el link que les mandás por WhatsApp, Instagram o donde lo compartas, en cualquier celular.</p></details>
-        <details><summary>¿Cómo me llegan los pedidos?</summary><p>Por WhatsApp, al número que elijas, en un solo mensaje con los productos, las cantidades y el total.</p></details>
-        <details><summary>¿Y si un día falla tu planilla?</summary><p>El catálogo sigue mostrando la última versión que funcionó, así tus clientes nunca ven una página vacía.</p></details>
+        <details><summary>¿Tengo que saber de computación?</summary><p>No. Si sabés cambiar un precio en Excel, ya está. El catálogo lo armo yo.</p></details>
+        <details><summary>¿Puedo no mostrar los precios?</summary><p>Sí. Y si los ocultás, no aparecen en ningún lado: ni en la página ni en el mensaje.</p></details>
+        <details><summary>¿Cuánto tarda en verse un cambio?</summary><p>Entre 15 y 20 minutos después de guardar el Excel. No hace falta avisarme.</p></details>
+        <details><summary>¿Mis clientes tienen que instalar algo?</summary><p>No. Les mandás el link y lo abren en el celular.</p></details>
+        <details><summary>¿Cómo me llegan los pedidos?</summary><p>Por WhatsApp, al número que elijas, en un solo mensaje con productos, cantidades y total.</p></details>
+        <details><summary>¿Y si un día falla la planilla?</summary><p>El catálogo sigue mostrando la última versión buena. Tus clientes nunca ven la página vacía.</p></details>
+        <details><summary>¿Cobrás comisión por venta?</summary><p>No. Pagás el alta y el abono, y nada más, vendas lo que vendas.</p></details>
       </div>
     </div>
   </section>
 
   <div class="cierre">
-    <h2>¿Lo armamos para <em>tu negocio</em>?</h2>
-    <p>Escribinos, contanos qué vendés y te mostramos cómo quedaría.</p>
-    <a class="btn btn-wa js-wa" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Consultar por WhatsApp</a>
+    <h2>¿Te lo armo para <em>tu negocio</em>?</h2>
+    <p>Mandame un WhatsApp contándome qué vendés y te muestro cómo quedaría.</p>
+    <a class="btn btn-wa js-wa" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Escribime por WhatsApp</a>
   </div>
-  <p class="pie">Funciona en cualquier celular, sin instalar nada.</p>
+  <p class="pie">Catálogo web · Lo hace Maxi, desde Buenos Aires<span id="pieWa" hidden> · WhatsApp <a class="js-wa"></a></span></p>
 </main>
-<a class="btn btn-wa fijo fuera js-wa" id="waFijo" hidden aria-hidden="true" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Consultar por WhatsApp</a>
+<a class="btn btn-wa fijo fuera js-wa" id="waFijo" hidden aria-hidden="true" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5Z"/></svg>Escribime por WhatsApp</a>
 <script type="module">
 // Precio y contacto de ventas (UC-024): salen de portada.json, así se cambian sin tocar esta página.
 // Si no carga, la portada queda sin el bloque de precio ni los botones de WhatsApp, y con todo lo demás.
@@ -289,6 +314,10 @@ try {
   oferta.hidden = !p.oferta;
   for (const a of [document.getElementById('consultar'), ...document.querySelectorAll('.js-wa')]) { a.href = link; a.hidden = false; }
   document.getElementById('precio').hidden = false;
+  // El número en el pie, como se escribe en Argentina (11 6013-2068); si no es de ese formato, va tal cual.
+  const n = String(p.whatsapp).replace(/^549?/, '');
+  document.querySelector('#pieWa a').textContent = /^11\d{8}$/.test(n) ? `11 ${n.slice(2, 6)}-${n.slice(6)}` : p.whatsapp;
+  document.getElementById('pieWa').hidden = false;
 
   // El botón fijo aparece al bajar, y se esconde cuando ya se ve otro botón de WhatsApp.
   const fijo = document.getElementById('waFijo');
