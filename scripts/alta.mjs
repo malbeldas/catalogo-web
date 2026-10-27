@@ -1,6 +1,6 @@
 /* Alta de un cliente (UC-021): arma en una carpeta todo lo que va a su repo, sin nada de la base.
-   Copia core/ sin demo.js, la tarea de respaldo y un tienda.json para completar, y genera index.html
-   desde tienda.html. Con tienda.resenas genera también resena.html, adonde apunta el QR de reseñas (UC-023). No pisa tienda.json ni img/ si ya existen: lo propio del cliente no se toca (regla hard 2).
+   Copia core/ sin demo.js, la tarea de respaldo, sus tests con ci.yml (SPEC.md §6) y un tienda.json para completar,
+   y genera index.html desde tienda.html. Con tienda.resenas genera también resena.html, adonde apunta el QR de reseñas (UC-023). No pisa tienda.json ni img/ si ya existen: lo propio del cliente no se toca (regla hard 2).
    Con una subcarpeta, el catálogo va dentro de un sitio que ya existe (por ejemplo /catalogo/) y la tarea de
    respaldo queda en la raíz del repo, corriendo en esa subcarpeta.
    Uso: node scripts/alta.mjs <repo del cliente> [subcarpeta] */
@@ -13,6 +13,9 @@ const BASE = fileURLToPath(new URL('..', import.meta.url));
 // Lo que el cliente recibe de la base y se reemplaza en cada alta o actualización.
 export const DE_LA_BASE = ['scripts/respaldo.mjs', 'scripts/xlsx.mjs'];
 const WORKFLOW = '.github/workflows/respaldo.yml';
+const CI = '.github/workflows/ci.yml';
+// Tests del catálogo del cliente (cliente/tests/ de la base): se reemplazan en cada alta o actualización, como core/.
+export const TESTS_CLIENTE = ['catalogo.test.js', 'catalogo.spec.js', 'playwright.config.js', 'servidor.js'];
 const existe = ruta => access(ruta).then(() => true, () => false);
 
 // index.html del cliente: el mismo catálogo de tienda.html, fijo en su tienda.json y sin nada de la base:
@@ -68,6 +71,12 @@ export function workflowEnSubcarpeta(yml, sub) {
   return yml.replace(/(\n {4}timeout-minutes: \d+\n)/, `$1    defaults:\n      run:\n        working-directory: ${sub}\n`);
 }
 
+// ci.yml del cliente: en una subcarpeta corre ahí, y la prueba de humo sirve todo el sitio (SUBCARPETA).
+export function ciDelCliente(yml, sub) {
+  if (!sub) return yml;
+  return workflowEnSubcarpeta(yml, sub).replace(`        working-directory: ${sub}\n`, `        working-directory: ${sub}\n    env:\n      SUBCARPETA: ${sub}\n`);
+}
+
 export async function armarAlta(repo, { base = BASE, sub = '' } = {}) {
   const destino = join(repo, sub);
   await mkdir(join(destino, 'core'), { recursive: true });
@@ -75,6 +84,9 @@ export async function armarAlta(repo, { base = BASE, sub = '' } = {}) {
   for (const f of DE_LA_BASE) await cp(join(base, f), join(destino, f));
   await mkdir(join(repo, '.github', 'workflows'), { recursive: true });
   await writeFile(join(repo, WORKFLOW), workflowEnSubcarpeta(await readFile(join(base, WORKFLOW), 'utf8'), sub));
+  await mkdir(join(destino, 'tests'), { recursive: true });
+  for (const f of TESTS_CLIENTE) await cp(join(base, 'cliente', 'tests', f), join(destino, 'tests', f));
+  await writeFile(join(repo, CI), ciDelCliente(await readFile(join(base, 'cliente', 'ci.yml'), 'utf8'), sub));
   // Sin package.json, Node no sabe que core/datos.js es un módulo y el respaldo no corre.
   await writeFile(join(destino, 'package.json'), JSON.stringify({ private: true, type: 'module' }, null, 1) + '\n');
   const nuevo = !await existe(join(destino, 'tienda.json'));

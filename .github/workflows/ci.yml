@@ -39,3 +39,24 @@ jobs:
           name: reporte-playwright
           path: playwright-report/
           retention-days: 7
+
+  cliente:
+    name: Tests de un cliente nuevo
+    # Arma un cliente con scripts/alta.mjs y corre ahí los tests que recibe, como en el repo de un comercio (SPEC.md §6).
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: /tmp/sitio/catalogo
+    env:
+      SUBCARPETA: catalogo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tests/cliente/armar.mjs /tmp/sitio
+        working-directory: ${{ github.workspace }}
+      - run: node --test "tests/*.test.js"
+      - run: npm install --no-save --no-package-lock @playwright/test@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test -c tests/playwright.config.js
