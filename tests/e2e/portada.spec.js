@@ -38,19 +38,39 @@ test('AC-024-2 el botón abre WhatsApp al número de ventas con el mensaje armad
   await expect.poll(() => externas).toContain(WA);
 });
 
-test('AC-024-3 la portada no nombra a Pueyrredón ni a PLED fuera de los ejemplos, ni usa "Mostrador"', async ({ page }) => {
+test('AC-024-3 la portada no nombra a PLED fuera de los ejemplos, a Pueyrredón solo en el caso real, y no usa "Mostrador"', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#precio')).toBeVisible();
-  const otraMarca = /pueyrred[oó]n|\bpled\b|mostrador/i;
   // Fuera de los links a los ejemplos: texto visible, título y descripción, y lo que dice el mensaje de ventas.
   const textos = await page.evaluate(() => {
     const copia = document.querySelector('main').cloneNode(true);
     copia.querySelectorAll('.go').forEach(e => e.remove());
-    return [copia.innerText, document.title, document.querySelector('meta[name=description]').content, decodeURIComponent(document.querySelector('#consultar').href)];
+    const sinCaso = copia.cloneNode(true);
+    sinCaso.querySelector('#caso').remove();
+    return { conCaso: copia.innerText, sinCaso: sinCaso.innerText, otros: [document.title, document.querySelector('meta[name=description]').content, decodeURIComponent(document.querySelector('#consultar').href)] };
   });
-  for (const t of textos) expect(t).not.toMatch(otraMarca);
-  expect(JSON.stringify(portada)).not.toMatch(otraMarca);
+  for (const t of [textos.conCaso, ...textos.otros]) expect(t).not.toMatch(/\bpled\b|mostrador/i);
+  for (const t of [textos.sinCaso, ...textos.otros]) expect(t).not.toMatch(/pueyrred[oó]n/i);
+  expect(JSON.stringify(portada)).not.toMatch(/pueyrred[oó]n|\bpled\b|mostrador/i);
   expect(await page.content()).not.toMatch(/mostrador/i);
+});
+
+test('AC-024-6 la portada muestra el caso real de Pueyrredón con su captura, sus datos y el link a su catálogo', async ({ page }) => {
+  await page.goto('/');
+  const caso = page.locator('#caso');
+  await caso.scrollIntoViewIfNeeded();
+  await expect(caso.locator('h2')).toContainText('Distribuidora Pueyrredón');
+  const foto = caso.locator('img[src="img/portada/pueyrredon.jpg"]');
+  await expect.poll(() => foto.evaluate(i => i.complete && i.naturalWidth)).toBe(750);
+  // Los datos se comprueban en su catálogo: 2.637 productos en catalogo-respaldo.json y precios ocultos en tienda.json.
+  await expect(caso.locator('.datos li')).toHaveText(['2.637 productos', 'Precios a consultar', 'Se actualiza desde su Excel']);
+  const link = caso.locator('a[href="https://distribuidora-pueyrredon.github.io/catalogo/"]');
+  await expect(link).toBeVisible();
+  await expect(link).toHaveAttribute('target', '_blank');
+  // Sin cifras de ventas ni testimonios: no hay porcentajes ni citas.
+  const texto = await caso.innerText();
+  expect(texto).not.toMatch(/%|["“”]/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 });
 
 test('AC-024-2 todos los botones de WhatsApp van al número de ventas, y en el celular queda uno fijo al bajar', async ({ page }) => {
