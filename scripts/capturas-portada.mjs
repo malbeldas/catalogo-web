@@ -2,9 +2,12 @@
    (dietética y ropa, sin marcas reales: AC-024-3) en un celular de 375 × 740 y guarda en img/portada/:
    - catalogo.jpg, buscar.jpg y pedido.jpg: lo que ve el comprador en la dietética (con precios);
    - mayorista.jpg: el ejemplo de ropa con precios a consultar;
+   - pueyrredon.jpg: el catálogo real de Distribuidora Pueyrredón, para el caso real (AC-024-6). Se saca del catálogo
+     en vivo o, si PUEYRREDON tiene la ruta a una copia local de su repo, de esa copia;
    - compartir.jpg: la imagen de 1200 × 630 que se ve al compartir el link de la portada.
    Corre en la base con npm ci hecho; no se copia a los clientes. Se vuelve a correr si cambia el catálogo o los ejemplos.
-   Uso: node scripts/capturas-portada.mjs */
+   Uso: node scripts/capturas-portada.mjs
+        PUEYRREDON=../distribuidora-pueyrredon.github.io node scripts/capturas-portada.mjs */
 import { spawn } from 'node:child_process';
 import { mkdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -16,11 +19,14 @@ const PUERTO = 4199;
 const BASE = `http://localhost:${PUERTO}`;
 const CELULAR = { viewport: { width: 375, height: 740 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'es-AR' };
 const JPG = { type: 'jpeg', quality: 82 };
+const PUEYRREDON = process.env.PUEYRREDON;
+const PUERTO_PUEYRREDON = 4198;
+const CATALOGO_PUEYRREDON = PUEYRREDON ? `http://localhost:${PUERTO_PUEYRREDON}/catalogo/` : 'https://distribuidora-pueyrredon.github.io/catalogo/';
 
-async function servidor() {
-  const proc = spawn(process.execPath, [join(RAIZ, 'tests/e2e/servidor.js'), String(PUERTO)], { stdio: 'ignore' });
+async function servidor(puerto = PUERTO, raiz = RAIZ, prueba = '/tienda.html') {
+  const proc = spawn(process.execPath, [join(RAIZ, 'tests/e2e/servidor.js'), String(puerto), raiz], { stdio: 'ignore' });
   for (let i = 0; i < 50; i++) {
-    try { if ((await fetch(`${BASE}/tienda.html`)).ok) return proc; } catch { /* todavía no levantó */ }
+    try { if ((await fetch(`http://localhost:${puerto}${prueba}`)).ok) return proc; } catch { /* todavía no levantó */ }
     await new Promise(ok => setTimeout(ok, 100));
   }
   proc.kill();
@@ -34,13 +40,18 @@ async function abrir(pagina, tienda) {
   await pagina.locator('#grid .pc').first().waitFor();
   await pagina.addStyleTag({ content: '#demobar{display:none!important}' });
   await pagina.evaluate(() => document.body.classList.remove('has-demo'));
-  // Las fotos de abajo cargan al bajar: alcanza con las que se ven.
+  await fotosVisibles(pagina);
+}
+
+// Las fotos de abajo cargan al bajar: alcanza con las que se ven.
+async function fotosVisibles(pagina) {
   await pagina.waitForFunction(() => [...document.images].filter(i => i.getBoundingClientRect().top < innerHeight).every(i => i.complete && i.naturalWidth));
 }
 
 export async function sacarCapturas() {
   await mkdir(SALIDA, { recursive: true });
   const proc = await servidor();
+  const procPueyrredon = PUEYRREDON ? await servidor(PUERTO_PUEYRREDON, PUEYRREDON, '/catalogo/') : null;
   const { chromium } = await import('@playwright/test');
   const navegador = await chromium.launch();
   try {
@@ -67,6 +78,15 @@ export async function sacarCapturas() {
 
     await abrir(p, 'ropa');
     await p.screenshot({ path: join(SALIDA, 'mayorista.jpg'), ...JPG });
+
+    // El caso real: el catálogo de Pueyrredón tal como lo ven sus clientes.
+    const real = await navegador.newPage(CELULAR);
+    const propio = new URL(CATALOGO_PUEYRREDON).hostname;
+    await real.route(u => ![propio, 'localhost'].includes(new URL(u).hostname) && !/fonts\.(googleapis|gstatic)\.com$/.test(new URL(u).hostname), r => r.abort());
+    await real.goto(CATALOGO_PUEYRREDON);
+    await real.locator('#grid .pc').first().waitFor();
+    await fotosVisibles(real);
+    await real.screenshot({ path: join(SALIDA, 'pueyrredon.jpg'), ...JPG });
 
     // Imagen para compartir: la captura del catálogo en un celular, sobre el fondo de la portada.
     const foto = (await readFile(join(SALIDA, 'catalogo.jpg'))).toString('base64');
@@ -96,6 +116,7 @@ export async function sacarCapturas() {
   } finally {
     await navegador.close();
     proc.kill();
+    procPueyrredon?.kill();
   }
   return SALIDA;
 }

@@ -1,9 +1,9 @@
-// Servidor estático mínimo para los E2E: sirve la raíz del repo, sin dependencias.
+// Servidor estático mínimo para los E2E: sirve la raíz del repo (u otra carpeta, como tercer argumento), sin dependencias.
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 
-const raiz = new URL('../../', import.meta.url).pathname;
+const raiz = process.argv[3] || new URL('../../', import.meta.url).pathname;
 const tipos = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
 
 createServer(async (req, res) => {
