@@ -40,7 +40,7 @@ El repo `malbeldas/catalogo-web` es el **producto base**. Contiene el núcleo de
 
 Un comercio que ya tiene sitio puede llevar el catálogo en una subcarpeta de su repo.
 
-Los extras de Distribuidora Pueyrredón (QR de reseñas con beneficio y probador de luces) **no forman parte de la base**: son diferenciales de Pueyrredón y viven solo en su repo. La base sí ofrece a cada cliente un QR de reseñas de Google **sin** beneficio (UC-023).
+El probador de luces de Distribuidora Pueyrredón **no forma parte de la base**: es un diferencial de Pueyrredón y vive solo en su repo. La base ofrece a cada cliente, Pueyrredón incluido, un QR de reseñas de Google **sin** beneficio (UC-023).
 
 ---
 
@@ -266,7 +266,7 @@ Evaluado: todos los clientes en un solo repo. Descartado: cada cliente quiere su
 Evaluado: Astro o Vite. Descartado en fase 1: el catálogo entra en menos de 1.000 líneas, GitHub Pages lo sirve tal cual y no hay paso que pueda romperse al publicar. Se revisa si aparece una segunda superficie compleja.
 
 **Extras de Pueyrredón fuera de la base.**
-QR de reseñas con beneficio y probador de luces quedan en el repo de Pueyrredón. Decisión de Maxi (2026-10-25).
+El probador de luces queda en el repo de Pueyrredón. Decisión de Maxi (2026-10-25). El QR de reseñas con 5% OFF se reemplaza por el de la base, sin regalo, porque Google prohíbe ofrecer algo a cambio de reseñas aunque no se condicione. Decisión de Maxi (2026-10-27).
 
 **QR de reseñas sin beneficio para todos los clientes.**
 Evaluado: llevar el QR de Pueyrredón (con 5% OFF) a la base. Descartado: Google prohíbe ofrecer algo a cambio de reseñas y puede bajar o sacar reseñas del perfil del cliente. El QR de la base lleva directo al formulario de Google, sin descuento ni filtro de estrellas, y apunta a una página del sitio del cliente para que la tarjeta impresa siga sirviendo si cambia el link. Decisión de Maxi (2026-10-26).
@@ -314,7 +314,8 @@ Evaluado: llevar el QR de Pueyrredón (con 5% OFF) a la base. Descartado: Google
 
 - Pagos online, carrito con checkout, stock o envíos calculados.
 - Cuentas de compradores o del comercio, y panel propio.
-- QR de reseñas con beneficio (descuento o regalo a cambio de la reseña) y probador de luces (diferenciales de Pueyrredón). El QR de reseñas sin beneficio sí entra (UC-023).
+- QR de reseñas con beneficio (descuento o regalo a cambio de la reseña), en la base y en los clientes. El QR de reseñas sin beneficio sí entra (UC-023).
+- Probador de luces (diferencial de Pueyrredón).
 - Varios idiomas o monedas.
 - Dominios pagos administrados por nosotros.
 
