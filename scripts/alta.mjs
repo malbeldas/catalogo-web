@@ -15,7 +15,7 @@ export const DE_LA_BASE = ['scripts/respaldo.mjs', 'scripts/xlsx.mjs'];
 const WORKFLOW = '.github/workflows/respaldo.yml';
 const CI = '.github/workflows/ci.yml';
 // Tests del catálogo del cliente (cliente/tests/ de la base): se reemplazan en cada alta o actualización, como core/.
-export const TESTS_CLIENTE = ['catalogo.test.js', 'catalogo.spec.js', 'playwright.config.js', 'servidor.js'];
+export const TESTS_CLIENTE = ['catalogo.test.js', 'catalogo.spec.js', 'resena.spec.js', 'playwright.config.js', 'servidor.js'];
 const existe = ruta => access(ruta).then(() => true, () => false);
 
 // index.html del cliente: el mismo catálogo de tienda.html, fijo en su tienda.json y sin nada de la base:
