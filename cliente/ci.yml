@@ -1,0 +1,28 @@
+# Tests del catálogo en cada cambio (regla hard 8). Los arma scripts/alta.mjs de la base y se reemplazan cuando se
+# actualiza el núcleo. Los commits de la tarea respaldo no los disparan: GitHub no corre workflows por sus propios push.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests del catálogo
+    # Fijo en 24.04: Playwright 1.56 no instala Chromium en ubuntu-latest (26.04).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test "tests/*.test.js"
+      - run: npm install --no-save --no-package-lock @playwright/test@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test -c tests/playwright.config.js

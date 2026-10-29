@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, readdir, writeFile, appendFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { paginaCliente, armarAlta, workflowEnSubcarpeta, paginaResena, esLinkResena } from '../../scripts/alta.mjs';
+import { paginaCliente, armarAlta, workflowEnSubcarpeta, ciDelCliente, TESTS_CLIENTE, paginaResena, esLinkResena } from '../../scripts/alta.mjs';
 import { revisarTienda, revisarPestanas, revisarPrivada, marcasAjenas, revisarNucleo, verificarAlta } from '../../scripts/verificar-alta.mjs';
 
 const BASE = new URL('../../', import.meta.url).pathname;
@@ -30,7 +30,9 @@ test('AC-021-1 el alta copia core/ igual al de la base, sin demo.js ni nada de l
   assert.deepEqual(core.sort(), (await readdir(join(BASE, 'core'))).filter(f => f !== 'demo.js').sort());
   for (const f of core) assert.deepEqual(await readFile(join(dir, 'core', f)), await readFile(join(BASE, 'core', f)), f);
   const raiz = await readdir(dir);
-  for (const f of ['tiendas', 'tienda.html', 'cliente', 'tests', 'SPEC.md', 'CLAUDE.md']) assert.ok(!raiz.includes(f), f);
+  for (const f of ['tiendas', 'tienda.html', 'cliente', 'SPEC.md', 'CLAUDE.md']) assert.ok(!raiz.includes(f), f);
+  // De tests/ recibe solo los del cliente, no los de la base.
+  assert.deepEqual((await readdir(join(dir, 'tests'))).sort(), [...TESTS_CLIENTE].sort());
   assert.deepEqual(JSON.parse(await readFile(join(dir, 'package.json'), 'utf8')).type, 'module');
   await readFile(join(dir, '.github/workflows/respaldo.yml'));
   await readFile(join(dir, 'scripts/respaldo.mjs'));
@@ -184,4 +186,25 @@ test('UC-023 el alta genera resena.html solo con resenas, y la verificación rev
   assert.match(await readFile(join(dir, 'resena.html'), 'utf8'), /g\.page\/r\/CaAbC123xyz\/review/);
   assert.deepEqual(await verificarAlta(dir, { fetch: planilla(WEB, AJUSTES()) }), []);
   assert.match(revisarTienda({ ...tienda, resenas: 'https://maps.app.goo.gl/abc' }).join(), /resenas tiene que ser el link de "Pedir reseñas"/);
+});
+
+test('AC-022-1 el alta deja al cliente sus tests y su ci.yml, iguales a los de la base (SPEC.md §6)', async () => {
+  const dir = await altaCompleta();
+  for (const f of TESTS_CLIENTE) assert.deepEqual(await readFile(join(dir, 'tests', f)), await readFile(join(BASE, 'cliente', 'tests', f)), f);
+  assert.equal(await readFile(join(dir, '.github/workflows/ci.yml'), 'utf8'), await readFile(join(BASE, 'cliente/ci.yml'), 'utf8'));
+  // Volver a correr el alta los reemplaza, como core/: un test editado en el cliente vuelve al de la base.
+  await appendFile(join(dir, 'tests', 'catalogo.test.js'), '\n// editado\n');
+  await armarAlta(dir);
+  assert.deepEqual(await readFile(join(dir, 'tests', 'catalogo.test.js')), await readFile(join(BASE, 'cliente/tests/catalogo.test.js')));
+});
+
+test('AC-022-1 con subcarpeta el ci.yml del cliente corre en ella y sirve todo el sitio para la prueba de humo', async () => {
+  const yml = await readFile(join(BASE, 'cliente/ci.yml'), 'utf8');
+  const sub = ciDelCliente(yml, 'catalogo');
+  assert.match(sub, /\n {4}defaults:\n {6}run:\n {8}working-directory: catalogo\n {4}env:\n {6}SUBCARPETA: catalogo\n/);
+  assert.equal(ciDelCliente(yml, ''), yml);
+  const dir = await mkdtemp(join(tmpdir(), 'alta-sub-'));
+  await armarAlta(dir, { sub: 'catalogo' });
+  assert.equal(await readFile(join(dir, '.github/workflows/ci.yml'), 'utf8'), sub);
+  assert.deepEqual((await readdir(join(dir, 'catalogo', 'tests'))).sort(), [...TESTS_CLIENTE].sort());
 });
