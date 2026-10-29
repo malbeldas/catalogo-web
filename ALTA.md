@@ -53,7 +53,7 @@ git clone https://github.com/<cuenta>/catalogo.git ../catalogo
 node scripts/alta.mjs ../catalogo
 ```
 
-Copia `core/` sin la demo, la tarea de respaldo y un `tienda.json` para completar, y genera `index.html`. No copia nada de la portada, de la demo ni de los ejemplos.
+Copia `core/` sin la demo, la tarea de respaldo, los tests del cliente con su `ci.yml` y un `tienda.json` para completar, y genera `index.html`. No copia nada de la portada, de la demo ni de los ejemplos.
 
 Si el comercio ya tiene un sitio en ese repo, el catálogo va en una subcarpeta y no pisa nada:
 
@@ -119,6 +119,8 @@ git add -A && git commit -m "Alta del catálogo" && git push -u origin main
 
 En el repo, **Settings > Pages**: *Deploy from a branch*, `main`, carpeta `/ (root)`. A los pocos minutos la web está en la URL del paso 1.
 
+Revisá que el CI del repo (**Actions > CI**) termine en verde después del push.
+
 ### 7. Guardar el link, correr la tarea respaldo y sumarla al disparador (vendedor o Claude)
 
 1. En el repo, **Settings > Secrets and variables > Actions > New repository secret**: nombre `PLANILLA_URL`, valor el link del paso 3. Claude lo puede hacer con `gh secret set PLANILLA_URL` si tiene permiso de administrador en el repo.
@@ -128,6 +130,8 @@ En el repo, **Settings > Pages**: *Deploy from a branch*, `main`, carpeta `/ (ro
    - En el proyecto de Apps Script, **Configuración del proyecto > Propiedades de secuencia de comandos**: agregá el repo en una línea nueva de `CLIENTES` (`cuenta/repo`).
 
 Desde ahí el disparador pide la tarea cada 15 minutos: lee el archivo, saca los productos con Visible = NO y los precios si Precios = NO, y guarda la copia que muestra la web. Un cambio del comercio se ve en la web en unos 15 a 20 minutos (AC-010-6). El cron de GitHub del workflow queda de respaldo, pero no se puede contar con él: casi no corre solo.
+
+4. **Sumar el cliente a `clientes.json` de la base** (Claude), con su repo y su carpeta, para que reciba las mejoras del núcleo ([Llevar una mejora del núcleo a los clientes](#llevar-una-mejora-del-núcleo-a-los-clientes)).
 
 **Clientes con la planilla publicada:** un alta anterior puede seguir con `planilla.web` y `planilla.ajustes` (los links CSV de "Publicar en la Web") y sin el secreto. En ese modo la web lee la planilla directo y la tarea respaldo guarda la copia para cuando Google falla.
 
@@ -216,4 +220,25 @@ En GitHub, en el repo de un cliente, **Actions > respaldo**: aparece una corrida
 - El comercio edita solo su archivo. Los cambios se ven en unos 15 a 20 minutos.
 - Si llega un mail de Apps Script con un error del disparador, dice qué cliente falló y por qué. Lo más común es un token vencido: se genera uno nuevo (paso 1 del disparador) y se reemplaza en las propiedades.
 - Si el comercio cambia de archivo, se cambia el secreto `PLANILLA_URL`. Si deja de compartirlo, la tarea respaldo queda en rojo, GitHub avisa por mail y la web sigue con la última copia.
-- Una mejora del núcleo se hace en la base y se lleva a cada cliente volviendo a correr `alta.mjs` sobre su repo (UC-022, STORY-008). Nunca se edita `core/` en el repo de un cliente.
+- Una mejora del núcleo se hace en la base y se lleva a los clientes con `propagar-nucleo.mjs` (abajo). Nunca se edita `core/` en el repo de un cliente.
+
+## Llevar una mejora del núcleo a los clientes
+
+Cuando se mergea en la base un cambio de `core/`, de la tarea de respaldo o de los tests del cliente (UC-022, AC-022-1). Lo hace Claude desde la base actualizada, con permiso para pushear en los repos de los clientes.
+
+1. Ver qué cambiaría, sin tocar nada:
+   ```
+   node scripts/propagar-nucleo.mjs --simular
+   ```
+2. Si está bien, abrir los PRs:
+   ```
+   node scripts/propagar-nucleo.mjs
+   ```
+   Para un solo cliente, se agrega su repo al final, por ejemplo `node scripts/propagar-nucleo.mjs distribuidora-pueyrredon/distribuidora-pueyrredon.github.io`.
+3. El script lista cómo quedó cada cliente:
+   - **al día:** ya tenía este núcleo;
+   - **PR:** con el link al PR en su repo;
+   - **error:** con el motivo. Si sus tests fallan con el núcleo nuevo, no se le abre PR y los demás siguen. Se revisa ese cliente aparte.
+4. En cada PR, esperar el CI en verde (la prueba de humo con sus datos) y mergear (vendedor). Con el merge, GitHub Pages publica el núcleo nuevo en unos minutos.
+
+El script solo cambia `core/`, la tarea de respaldo, los tests y `ci.yml`. `tienda.json`, `img/` y la planilla del cliente no se tocan.
