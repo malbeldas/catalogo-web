@@ -1,0 +1,10 @@
+{
+  "con_costo": [
+    "gh workflow run",
+    "gh repo create",
+    "propagar-nucleo",
+    "scripts/alta\\.mjs",
+    "scripts/respaldo\\.mjs"
+  ],
+  "secretos": []
+}
